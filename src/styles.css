@@ -3,6 +3,7 @@ body {
     margin: 0;
     padding: 0;
     background: #f4f4f4;
+    color: #333;
 }
 
 header, footer {
@@ -15,4 +16,52 @@ header, footer {
 main {
     padding: 20px;
     text-align: center;
+}
+
+.search-section {
+    margin: 20px auto;
+    max-width: 600px;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#search-input {
+    width: 80%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+#search-button {
+    padding: 10px 20px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#search-button:hover {
+    background: #0056b3;
+}
+
+.results-section {
+    margin-top: 30px;
+}
+
+#results-container {
+    margin: 0 auto;
+    max-width: 800px;
+    text-align: left;
+    padding: 10px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
