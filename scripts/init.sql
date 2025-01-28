@@ -4,36 +4,37 @@ USE movielens;
 
 -- Create Movies Table
 CREATE TABLE IF NOT EXISTS movies (
-    movieId INT PRIMARY KEY,
+    movieId VARCHAR(255) PRIMARY KEY,
     title VARCHAR(255),
-    genres VARCHAR(255)
+    genres VARCHAR(255),
+    year INT
 );
 
 -- Create Links Table
 CREATE TABLE IF NOT EXISTS links (
-    movieId INT PRIMARY KEY,
-    imdbId INT,
-    tmdbId INT
+    movieId VARCHAR(255) PRIMARY KEY,
+    imdbId VARCHAR(255),
+    tmdbId VARCHAR(255)
 );
 
 -- Create Ratings Table
 CREATE TABLE IF NOT EXISTS ratings (
-    userId INT,
-    movieId INT,
+    userId VARCHAR(255),
+    movieId VARCHAR(255),
     rating FLOAT,
     timestamp BIGINT
 );
 
 -- Create Tags Table
 CREATE TABLE IF NOT EXISTS tags (
-    userId INT,
-    movieId INT,
+    userId VARCHAR(255),
+    movieId VARCHAR(255),
     tag VARCHAR(255),
     timestamp BIGINT
 );
 
 -- Load Movies Data
-LOAD DATA INFILE '/var/lib/mysql-files/movies.csv'
+LOAD DATA INFILE '/var/lib/mysql-files/movies_cleaned.csv'
 INTO TABLE movies
 FIELDS TERMINATED BY ',' 
 ENCLOSED BY '"'
