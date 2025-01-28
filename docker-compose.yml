@@ -3,20 +3,24 @@ version: '3.9'
 services:
   db:
     image: mysql:8.0
+    container_name: comp0022-db
     environment:
-      MYSQL_ROOT_PASSWORD: PUT_YOUR_OWN_PASSWORD
+      MYSQL_ROOT_PASSWORD: PUTYOUROWNPASSWORD
       MYSQL_DATABASE: movielens
     volumes:
       - ./databases:/var/lib/mysql
       - ./scripts:/docker-entrypoint-initdb.d
+      - ./csv:/var/lib/mysql-files 
     ports:
       - "3306:3306"
 
   app:
     image: php:8.1-apache
+    container_name: comp0022-app
     volumes:
       - ./src:/var/www/html
     ports:
       - "8080:80"
     depends_on:
       - db
+    command: apachectl -D FOREGROUND
