@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS tags (
 );
 
 -- Load Movies Data
-LOAD DATA INFILE '/var/lib/mysql-files/movies.csv'
+LOAD DATA INFILE '/var/lib/mysql-files/movies_cleaned.csv'
 INTO TABLE movies
 FIELDS TERMINATED BY ',' 
 ENCLOSED BY '"'
