@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   db:
     image: mysql:8.0
@@ -19,6 +17,7 @@ services:
     container_name: comp0022-app
     volumes:
       - ./src:/var/www/html
+      - ./scripts:/var/www/html/scripts
     ports:
       - "8080:80"
     depends_on:

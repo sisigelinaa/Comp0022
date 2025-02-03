@@ -42,7 +42,7 @@ LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
 
 -- Load Links Data
-LOAD DATA INFILE '/var/lib/mysql-files/links.csv'
+LOAD DATA INFILE '/var/lib/mysql-files/links_cleaned.csv'
 INTO TABLE links
 FIELDS TERMINATED BY ',' 
 ENCLOSED BY '"'
@@ -50,7 +50,7 @@ LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
 
 -- Load Ratings Data
-LOAD DATA INFILE '/var/lib/mysql-files/ratings.csv'
+LOAD DATA INFILE '/var/lib/mysql-files/ratings_cleaned.csv'
 INTO TABLE ratings
 FIELDS TERMINATED BY ',' 
 ENCLOSED BY '"'
@@ -58,7 +58,7 @@ LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
 
 -- Load Tags Data
-LOAD DATA INFILE '/var/lib/mysql-files/tags.csv'
+LOAD DATA INFILE '/var/lib/mysql-files/tags_cleaned.csv'
 INTO TABLE tags
 FIELDS TERMINATED BY ',' 
 ENCLOSED BY '"'
