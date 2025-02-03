@@ -6,7 +6,7 @@ services:
       MYSQL_ROOT_PASSWORD: PUTYOUROWNPASSWORD
       MYSQL_DATABASE: movielens
     volumes:
-      - ./databases:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
       - ./scripts:/docker-entrypoint-initdb.d
       - ./csv:/var/lib/mysql-files 
     ports:
@@ -23,3 +23,7 @@ services:
     depends_on:
       - db
     command: apachectl -D FOREGROUND
+
+volumes:
+  mysql_data: # named volume managed by Docker:
+              # Docker automatically creates a named volume and assigns it a path on the host machine -> /var/lib/docker/volumes/mysql_data/_data
