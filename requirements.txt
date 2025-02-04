@@ -2,3 +2,4 @@ pandas
 mysql
 matplotlib
 mysql-connector-python
+IMDbPY
