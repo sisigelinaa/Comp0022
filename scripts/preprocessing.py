@@ -45,6 +45,9 @@ def clean_ratings_csv(input_file, output_file):
     # convert the 'timestamp' column to a readable date and time
     df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
 
+    # Add a unique ID column (starting from 1)
+    df.insert(0, 'uniqueId', range(1, len(df) + 1))
+
     df.to_csv(output_file, index=False)
     print(f"Cleaned ratings data saved to {output_file}")
 
@@ -72,18 +75,21 @@ def clean_tags_csv(input_file, output_file):
     # remove exact duplicate rows
     df = df.drop_duplicates()
 
+    # Add a unique ID column (starting from 1)
+    df.insert(0, 'uniqueId', range(1, len(df) + 1))
+
     df.to_csv(output_file, index=False)
     print(f"Cleaned tags data saved to {output_file}")
 
 # Input and output file paths
-movies_input_file = './csv/movies.csv'
-movies_output_file = './csv/movies_cleaned.csv'
-ratings_input_file = './csv/ratings.csv'
-ratings_output_file = './csv/ratings_cleaned.csv'
-links_input_file = './csv/links.csv'
-links_output_file = './csv/links_cleaned.csv'
-tags_input_file = './csv/tags.csv'
-tags_output_file = './csv/tags_cleaned.csv'
+movies_input_file = './csv/raw_csv/movies_raw.csv'
+movies_output_file = './csv/movies.csv'
+ratings_input_file = './csv/raw_csv/ratings_raw.csv'
+ratings_output_file = './csv/ratings.csv'
+links_input_file = './csv/raw_csv/links_raw.csv'
+links_output_file = './csv/links.csv'
+tags_input_file = './csv/raw_csv/tags_raw.csv'
+tags_output_file = './csv/tags.csv'
 
 # Run the cleaning functions
 clean_movies_csv(movies_input_file, movies_output_file)
@@ -170,7 +176,7 @@ def add_actors_and_directors(movies_input_file, links_input_file, actors_output_
     # Write actors CSV
     with open(actors_output_file, "w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
-        writer.writerow(["actor_id", "actor_name"])
+        writer.writerow(["actorId", "actorName"])
         for actor, actor_id in actors_csv_dict.items():
             writer.writerow([actor_id, actor])
 
@@ -179,7 +185,7 @@ def add_actors_and_directors(movies_input_file, links_input_file, actors_output_
     # Write directors CSV
     with open(directors_output_file, "w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
-        writer.writerow(["director_id", "director_name"])
+        writer.writerow(["directorId", "directorName"])
         for director, director_id in directors_csv_dict.items():
             writer.writerow([director_id, director])
 
@@ -188,7 +194,7 @@ def add_actors_and_directors(movies_input_file, links_input_file, actors_output_
     # Write actor-movie relationships CSV
     with open(actors_movies_output_file, "w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
-        writer.writerow(["unique_id", "actor_id", "movie_id"])
+        writer.writerow(["uniqueId", "actorId", "movieId"])
         for unique_id, ids in actors_movies_ids_csv_dict.items():
             writer.writerow([unique_id, ids[0], ids[1]])
 
@@ -197,13 +203,13 @@ def add_actors_and_directors(movies_input_file, links_input_file, actors_output_
     # Write director-movie relationships CSV
     with open(directors_movies_output_file, "w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
-        writer.writerow(["unique_id", "director_id", "movie_id"])
+        writer.writerow(["uniqueId", "directorId", "movieId"])
         for unique_id, ids in directors_movies_ids_csv_dict.items():
             writer.writerow([unique_id, ids[0], ids[1]])
 
     print(f"Director-movie id pairs saved to {directors_movies_output_file}")
 
 
-add_actors_and_directors("./csv/movies_cleaned.csv", "./csv/links_cleaned.csv",
+add_actors_and_directors("./csv/movies.csv", "./csv/links.csv",
                          "./csv/actors.csv", "./csv/directors.csv", "./csv/actors_movies.csv", "./csv/directors_movies.csv")
 print("Actors, directors, and actor-movie and director-movie relationship files saved successfully!")
