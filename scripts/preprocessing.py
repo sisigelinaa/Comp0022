@@ -11,7 +11,6 @@ def clean_movies_csv(input_file, output_file):
             df.at[index, 'year'] = int(match.group(1))
         else:
             df.at[index, 'year'] = None
-            print(f"Movie ID {row['movieId']} does not have a year in the title.")  # in case of error
 
     # remove year from title string
     df['title'] = df['title'].apply(lambda x: re.sub(r' \(\d{4}\)\s*$', '', x))
@@ -27,11 +26,12 @@ def clean_movies_csv(input_file, output_file):
         # drop these rows if there are any as we can't use incomplete data
         df = df[df['year'] != -1]
 
-    # split genres into multiple rows
-    df = df.assign(genre=df['genres'].str.split('|')).explode('genre').drop('genres', axis=1)
+    # TODO: task 2 uses this, revert? although
+    # # split genres into multiple rows
+    # df = df.assign(genre=df['genres'].str.split('|')).explode('genre').drop('genres', axis=1)
 
-    # add a decade column (not sure if we need this)
-    df['decade'] = (df['year'] // 10) * 10
+    # # add a decade column (not sure if we need this)
+    # df['decade'] = (df['year'] // 10) * 10
 
     df.to_csv(output_file, index=False)
     print(f"Cleaned data saved to {output_file}")
