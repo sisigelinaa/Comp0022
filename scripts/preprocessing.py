@@ -101,10 +101,10 @@ print("Preprocessing complete. Cleaned files saved.")
 
 
 def add_actors_and_directors(movies_input_file, links_input_file, actors_output_file, directors_output_file, actors_movies_output_file, directors_movies_output_file):
-    # Initialize IMDbPY
+    # initialize IMDbPY - this allows us to fetch data from IMDb
     ia = IMDb()
 
-    # Load movies and links data
+    # load movies and links data
     movies = {}
     with open(movies_input_file, "r", encoding="utf-8") as file:
         reader = csv.DictReader(file)
@@ -122,40 +122,62 @@ def add_actors_and_directors(movies_input_file, links_input_file, actors_output_
     actors_movies_ids_csv_dict = {}
     directors_movies_ids_csv_dict = {}
 
-    # Fetch actors and directors
+    # fetch actors and directors
     print("Fetching actors and directors for movies...")
     i = 0
     for movieId, imdbId in links.items():
         i += 1
-        if i > 10:  # TODO: remove this break when done testing, to process all 10000 records
+        if i > 3:  # TODO: remove this break when done testing, to process all 10000 records
             break
         print(f"{i}/{len(links)}: Fetching data for IMDb ID {imdbId}...")
 
         try:
+            # Fetch movie details with additional information
             movie = ia.get_movie(imdbId)
-            actors = [actor["name"] for actor in movie.get("cast", [])[:5]]
-            directors = [director["name"] for director in movie.get("directors", [])]
 
-            movies[movieId]["actors"] = "|".join(actors)
-            movies[movieId]["directors"] = "|".join(directors)
+            # Get actors and directors
+            actors = movie.get("cast", [])[:5]  
+            directors = movie.get("directors", [])
+
+            # Extract relevant details
+            movies[movieId]["actors"] = "|".join([actor["name"] for actor in actors])
+            movies[movieId]["directors"] = "|".join([director["name"] for director in directors])
+            movies[movieId]["runtime"] = movie.get("runtimes", [""])[0]  # Runtime in minutes
+            movies[movieId]["language"] = "|".join(movie.get("languages", []))  # Languages
+            movies[movieId]["posterUrl"] = movie.get("cover url", "")  # Poster URL
+            movies[movieId]["boxOffice"] = movie.get("box office", {}).get("Cumulative Worldwide Gross", "")  # Worldwide earnings
+
+            # Extract critic scores
+            movies[movieId]["imdbRating"] = movie.get("rating", "")  # IMDb score
+            movies[movieId]["imdbVotes"] = movie.get("votes", "")  # Number of votes
+
+            # Extract awards & nominations
+            if "awards" in movie.keys():
+                awards_text = movie["awards"]
+                awards_list = [a for a in awards_text if "Win" in a or "Nomination" in a]
+                movies[movieId]["awards"] = "|".join(awards_list)
+            else:
+                movies[movieId]["awards"] = ""
 
             for actor in actors:
-                if actor not in actors_csv_dict:
-                    actors_csv_dict[actor] = len(actors_csv_dict) + 1
-                # linking ids
-                unique_id = len(actors_movies_ids_csv_dict) + 1
-                actor_id = actors_csv_dict[actor]
-                actors_movies_ids_csv_dict[unique_id] = [actor_id, movieId]
-                # TODO: add actor info
+                actorId = actor.personID
+                if actorId not in actors_csv_dict:
+                    actors_csv_dict[actorId] = {
+                        "actorName": actor["name"]
+                    }   # extendable
+                # linking ids for actor-movie relationship
+                uniqueId = len(actors_movies_ids_csv_dict) + 1
+                actors_movies_ids_csv_dict[uniqueId] = [actorId, movieId]
 
             for director in directors:
-                if director not in directors_csv_dict:
-                    directors_csv_dict[director] = len(directors_csv_dict) + 1
-                # linking ids
-                unique_id = len(directors_movies_ids_csv_dict) + 1
-                director_id = directors_csv_dict[director]
-                directors_movies_ids_csv_dict[unique_id] = [director_id, movieId]
-                # TODO: add director info
+                directorId = director.personID
+                if directorId not in directors_csv_dict:
+                    directors_csv_dict[directorId] = {
+                        "directorName": director["name"]
+                    }   # extendable
+                # linking ids for director-movie relationship
+                uniqueId = len(directors_movies_ids_csv_dict) + 1
+                directors_movies_ids_csv_dict[uniqueId] = [directorId, movieId]
 
         except Exception as e:
             print(f"Failed to fetch data for IMDb ID {imdbId}: {e}")
@@ -164,7 +186,11 @@ def add_actors_and_directors(movies_input_file, links_input_file, actors_output_
 
     # Write updated movies data back to file
     with open(movies_input_file, "w", newline="", encoding="utf-8") as file:
-        fieldnames = ["movieId", "title", "genres", "year", "actors", "directors"]
+        fieldnames = [
+        "movieId", "title", "genres", "year", "actors", "directors",
+        "runtime", "language", "posterUrl", "boxOffice", "imdbRating",
+        "imdbVotes", "awards"
+        ]
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         
         writer.writeheader()
@@ -177,8 +203,8 @@ def add_actors_and_directors(movies_input_file, links_input_file, actors_output_
     with open(actors_output_file, "w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerow(["actorId", "actorName"])
-        for actor, actor_id in actors_csv_dict.items():
-            writer.writerow([actor_id, actor])
+        for actorId, actor in actors_csv_dict.items():
+            writer.writerow([actorId, actor["actorName"]])
 
     print(f"Actors data saved to {actors_output_file}")
 
@@ -186,8 +212,9 @@ def add_actors_and_directors(movies_input_file, links_input_file, actors_output_
     with open(directors_output_file, "w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerow(["directorId", "directorName"])
-        for director, director_id in directors_csv_dict.items():
-            writer.writerow([director_id, director])
+        for directorId, director in directors_csv_dict.items():
+            writer.writerow([directorId, director["directorName"]])
+
 
     print(f"Directors data saved to {directors_output_file}")
 

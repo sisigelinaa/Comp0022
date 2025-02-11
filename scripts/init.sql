@@ -10,6 +10,13 @@ CREATE TABLE IF NOT EXISTS movies (
     year INT,
     actors VARCHAR(255),
     directors VARCHAR(255),
+    runtime INT,
+    language VARCHAR(255),
+    posterUrl VARCHAR(255),
+    boxOffice VARCHAR(255),
+    imdbRating FLOAT,
+    imdbVotes INT,
+    awards VARCHAR(255)
 );
 
 -- Create Links Table
