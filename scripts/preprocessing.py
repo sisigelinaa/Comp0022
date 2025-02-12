@@ -127,8 +127,8 @@ def add_actors_and_directors(movies_input_file, links_input_file, actors_output_
     i = 0
     for movieId, imdbId in links.items():
         i += 1
-        if i > 3:  # TODO: remove this break when done testing, to process all 10000 records
-            break
+        # if i > 3:  # TODO: remove this break when done testing, to process all 10000 records
+        #     break
         print(f"{i}/{len(links)}: Fetching data for IMDb ID {imdbId}...")
 
         try:
