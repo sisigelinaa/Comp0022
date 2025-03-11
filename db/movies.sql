@@ -47,27 +47,27 @@ CREATE TABLE IF NOT EXISTS tags (
 -- Create Actors Table
 CREATE TABLE IF NOT EXISTS actors (
     actorId VARCHAR(255) PRIMARY KEY,
-    actorName VARCHAR(255),
+    actorName VARCHAR(255)
 );
 
 -- Create Directors Table
 CREATE TABLE IF NOT EXISTS directors (
     directorId VARCHAR(255) PRIMARY KEY,
-    directorName VARCHAR(255),
+    directorName VARCHAR(255)
 );
 
 -- Create ActorsMovies Table
 CREATE TABLE IF NOT EXISTS actorsMovies (
     uniqueId VARCHAR(255) PRIMARY KEY,
     actorId VARCHAR(255),
-    movieId VARCHAR(255),
+    movieId VARCHAR(255)
 );
 
 -- Create DirectorsMovies Table
 CREATE TABLE IF NOT EXISTS directorsMovies (
     uniqueId VARCHAR(255) PRIMARY KEY,
     directorId VARCHAR(255),
-    movieId VARCHAR(255),
+    movieId VARCHAR(255)
 );
 
 -- Load Movies Data
