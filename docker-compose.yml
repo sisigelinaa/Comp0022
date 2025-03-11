@@ -1,29 +1,42 @@
 services:
-  db:
-    image: mysql:8.0
-    container_name: comp0022-db
-    environment:
-      MYSQL_ROOT_PASSWORD: PUTYOUROWNPASSWORD
-      MYSQL_DATABASE: movielens
+  php:
+    build: ./php
+    container_name: php_app
     volumes:
-      - mysql_data:/var/lib/mysql
-      - ./scripts:/docker-entrypoint-initdb.d
-      - ./csv:/var/lib/mysql-files 
-    ports:
-      - "3306:3306"
-
-  app:
-    image: php:8.1-apache
-    container_name: comp0022-app
-    volumes:
-      - ./src:/var/www/html
-      - ./scripts:/var/www/html/scripts
+      - ./php:/var/www/html
+      - ./db:/var/www/html/scripts  # Mount scripts like before
     ports:
       - "8080:80"
     depends_on:
       - db
     command: apachectl -D FOREGROUND
 
+  db:
+    image: mysql:8.0 
+    container_name: mysql_db
+    restart: always
+    platform: linux/amd64 
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: movielens
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./db:/docker-entrypoint-initdb.d  # Mount scripts for DB initialization
+      - ./csv:/var/lib/mysql-files  # Mount CSV files for data import
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: root
+
 volumes:
-  mysql_data: # named volume managed by Docker:
-              # Docker automatically creates a named volume and assigns it a path on the host machine -> /var/lib/docker/volumes/mysql_data/_data
+  mysql_data:

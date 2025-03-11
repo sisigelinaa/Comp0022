@@ -1,0 +1,36 @@
+body {
+    font-family: 'Arial', sans-serif;
+}
+
+h1 {
+    font-weight: bold;
+    color: #ffcc00;
+    text-shadow: 2px 2px 10px rgba(255, 204, 0, 0.5);
+}
+
+.card {
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #222;
+    color: white;
+    box-shadow: 0px 0px 10px rgba(255, 204, 0, 0.4);
+}
+
+.card img {
+    height: 350px;
+    object-fit: cover;
+}
+
+.card-body {
+    padding: 15px;
+}
+
+.alert {
+    width: 50%;
+    margin: auto;
+    text-align: center;
+}
+
+a {
+    text-decoration: none;
+}
