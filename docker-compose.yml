@@ -1,16 +1,4 @@
 services:
-  php:
-    build: ./php
-    container_name: php_app
-    volumes:
-      - ./php:/var/www/html
-      - ./db:/var/www/html/scripts  # Mount scripts like before
-    ports:
-      - "8080:80"
-    depends_on:
-      - db
-    command: apachectl -D FOREGROUND
-
   db:
     image: mysql:8.0 
     container_name: mysql_db
@@ -27,6 +15,29 @@ services:
       - mysql_data:/var/lib/mysql
       - ./db:/docker-entrypoint-initdb.d  # Mount scripts for DB initialization
       - ./csv:/var/lib/mysql-files  # Mount CSV files for data import
+
+  python-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    container_name: python_api
+    ports:
+      - "5001:5000"
+    depends_on:
+      - db
+
+  php:
+    build: ./php
+    container_name: php_app
+    volumes:
+      - ./php:/var/www/html
+      - ./db:/var/www/html/scripts  # Mount scripts like before
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+      - python-api  # Ensure Flask is running before PHP starts
+    command: apachectl -D FOREGROUND
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin

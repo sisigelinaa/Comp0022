@@ -1,0 +1,9 @@
+Flask
+Flask-RESTful
+Flask-CORS
+pymysql
+pandas
+matplotlib
+scipy
+numpy
+scikit-learn
