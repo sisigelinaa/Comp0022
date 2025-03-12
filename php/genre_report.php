@@ -1,5 +1,5 @@
 <?php
-// genre_report.php - This file now correctly displays the genre report as a table.
+// genre_report.php - Displays the genre report as a table.
 
 $servername = "db";
 $username = "user";
