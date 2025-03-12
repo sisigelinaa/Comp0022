@@ -49,6 +49,11 @@ if ($conn->connect_error) {
         ?>
     </div>
 
+    <!-- Button to Open Correlation Page -->
+    <div class="text-center my-4">
+        <a href="audience_patterns.php" class="btn btn-primary">View Genre Correlations</a>
+    </div>
+
     <form method="GET" class="my-4">
         <div class="row">
             <div class="col-md-3">

@@ -7,3 +7,6 @@ matplotlib
 scipy
 numpy
 scikit-learn
+mysql-connector-python
+python-dotenv
+plotly
