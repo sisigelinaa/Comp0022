@@ -22,7 +22,6 @@ if ($conn->connect_error) {
     <style>
         .movie-card {
             transition: transform 0.2s;
-            size: 
         }
         .movie-card:hover {
             transform: scale(1.1);
@@ -79,6 +78,12 @@ if ($conn->connect_error) {
             <button type="submit" class="btn btn-danger">Search</button>
         </div>
     </form>
+
+    <div class="text-center my-3">
+        <a href="genre_report.php" class="btn btn-info">View Genre Reports (Table)</a>
+        <a href="genre_histograms.php?type=popularity" class="btn btn-primary">View Genre Popularity Histogram</a>
+        <a href="genre_histograms.php?type=polarization" class="btn btn-warning">View Genre Polarization Histogram</a>
+    </div>
 
     <?php
     $sql = "SELECT * FROM movies WHERE 1=1";
