@@ -1,3 +1,16 @@
+<?php
+$servername = "db";
+$username = "user";
+$password = "password";
+$database = "movielens";
+
+$conn = new mysqli($servername, $username, $password, $database);
+
+if ($conn->connect_error) {
+    die("<div class='alert alert-danger'>Connection failed: " . $conn->connect_error . "</div>");
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,87 +19,138 @@
     <title>Movie Info Finder</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .movie-card {
+            transition: transform 0.2s;
+            size: 
+        }
+        .movie-card:hover {
+            transform: scale(1.1);
+        }
+        .genre-bar {
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        .genre-bar a {
+            display: inline-block;
+            margin-right: 10px;
+        }
+    </style>
 </head>
-<body class="bg-dark text-light">
-
+<body class="text-light" style="background-color: #141414;">
 <div class="container mt-4">
     <h1 class="text-center">🎬 Movie Finder</h1>
 
-    <!-- Search Form -->
-    <form method="GET" class="d-flex justify-content-center my-4">
-        <input type="text" name="movie" class="form-control w-50" placeholder="Search for a movie..." required>
-        <button type="submit" class="btn btn-danger ms-2">Search</button>
+    <div class="text-center my-3 genre-bar">
+        <?php
+        $genres = ["Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance", "Thriller", "Crime", "Mystery", "Musical"];
+        foreach ($genres as $genre) {
+            echo "<a href='?genre=$genre' class='btn btn-danger'>$genre</a>";
+        }
+        ?>
+    </div>
+
+    <form method="GET" class="my-4">
+        <div class="row">
+            <div class="col-md-3">
+                <input type="text" name="movie" class="form-control" placeholder="Search for a movie...">
+            </div>
+            <div class="col-md-2">
+                <input type="text" name="actor" class="form-control" placeholder="Search by actor...">
+            </div>
+            <div class="col-md-2">
+                <input type="text" name="year_from" class="form-control" placeholder="Year From">
+            </div>
+            <div class="col-md-2">
+                <input type="text" name="year_to" class="form-control" placeholder="Year To">
+            </div>
+            <div class="col-md-2">
+                <select name="rating" class="form-control">
+                    <option value="">Min Rating</option>
+                    <option value="9">9+</option>
+                    <option value="8">8+</option>
+                    <option value="7">7+</option>
+                    <option value="6">6+</option>
+                    <option value="5">5+</option>
+                </select>
+            </div>
+        </div>
+        <div class="text-center mt-3">
+            <button type="submit" class="btn btn-danger">Search</button>
+        </div>
     </form>
 
     <?php
-    $servername = "db";
-    $username = "user";
-    $password = "password";
-    $database = "movielens";
+    $sql = "SELECT * FROM movies WHERE 1=1";
 
-    $conn = new mysqli($servername, $username, $password, $database);
-
-    if ($conn->connect_error) {
-        die("<div class='alert alert-danger'>Connection failed: " . $conn->connect_error . "</div>");
+    if (!empty($_GET['movie'])) {
+        $movie = $conn->real_escape_string($_GET['movie']);
+        $sql .= " AND title LIKE '%$movie%'";
     }
 
-    if (isset($_GET['movie'])) {
-        $movie = $_GET['movie'];
-        $apiKey = "973a80b2"; // Replace with your OMDB API Key
-        $url = "http://www.omdbapi.com/?s=" . urlencode($movie) . "&apikey=" . $apiKey;
-        $response = file_get_contents($url);
-        $data = json_decode($response, true);
+    if (!empty($_GET['genre'])) {
+        $genre = $conn->real_escape_string($_GET['genre']);
+        $sql .= " AND genres LIKE '%$genre%'";
+    }
 
-        if ($data && $data['Response'] == "True") {
-            echo "<div class='row row-cols-2 row-cols-md-4 g-4'>";
-            foreach ($data['Search'] as $movie) {
-                $title = $movie['Title'];
-                $year = $movie['Year'];
-                $poster = ($movie['Poster'] != "N/A") ? $movie['Poster'] : "no-image.jpg";
-                $imdbID = $movie['imdbID'];
+    if (!empty($_GET['actor'])) {
+        $actor = $conn->real_escape_string($_GET['actor']);
+        $sql .= " AND actors LIKE '%$actor%'";
+    }
 
-                echo "<div class='col'>
-                        <a href='movies.php?id=$imdbID' class='text-decoration-none'>
-                            <div class='card'>
-                                <img src='$poster' class='card-img-top' alt='$title'>
-                                <div class='card-body text-center'>
-                                    <h6 class='text-light'>$title ($year)</h6>
-                                </div>
+    if (!empty($_GET['year_from'])) {
+        $yearFrom = intval($_GET['year_from']);
+        $sql .= " AND year >= $yearFrom";
+    }
+
+    if (!empty($_GET['year_to'])) {
+        $yearTo = intval($_GET['year_to']);
+        $sql .= " AND year <= $yearTo";
+    }
+
+    if (!empty($_GET['rating'])) {
+        $rating = floatval($_GET['rating']);
+        $sql .= " AND imdbRating >= $rating";
+    }
+
+    $result = $conn->query($sql);
+
+    if ($result->num_rows > 0) {
+        echo "<div class='row row-cols-2 row-cols-md-4 g-2'>";
+        while ($row = $result->fetch_assoc()) {
+            $title = htmlspecialchars($row['title']);
+            $year = htmlspecialchars($row['year']);
+            $poster = !empty($row['posterUrl']) ? $row['posterUrl'] : "no-image.png";
+            $rating = htmlspecialchars($row['imdbRating']);
+            $genre = htmlspecialchars($row['genres']);
+            $actors = htmlspecialchars($row['actors']);
+            $movieId = $row['movieId'];
+            
+            echo "<div class='col'>
+                    <a href='movies.php?movieId=$movieId' class='text-decoration-none'>
+                        <div class='card bg-dark movie-card'>
+                            <img src='$poster' class='card-img-top' alt='$title'>
+                            <div class='card-body text-center'>
+                                <h6 class='text-light'>$title</h6>
+                                <p class='text-light'>⭐ $rating</p>
+                                <p class='text-light'>$genre</p>
+                                <p class='text-light'><strong>Actors:</strong> $actors</p>
                             </div>
-                        </a>
-                    </div>";
-            }
-            echo "</div>";
-        } else {
-            echo "<div class='alert alert-warning text-center'>No movies found.</div>";
+                        </div>
+                    </a>
+                </div>";
         }
+        echo "</div>";
     } else {
-        // Show recent movies from the database
-        $result = $conn->query("SELECT * FROM movies ORDER BY id DESC LIMIT 8");
-
-        if ($result->num_rows > 0) {
-            echo "<h2 class='text-center mt-5'>🎥 Recently Searched Movies</h2>";
-            echo "<div class='row row-cols-2 row-cols-md-4 g-4'>";
-            while ($row = $result->fetch_assoc()) {
-                echo "<div class='col'>
-                        <a href='movie.php?id={$row['id']}' class='text-decoration-none'>
-                            <div class='card'>
-                                <img src='{$row['poster']}' class='card-img-top' alt='{$row['title']}'>
-                                <div class='card-body text-center'>
-                                    <h6 class='text-light'>{$row['title']} ({$row['year']})</h6>
-                                </div>
-                            </div>
-                        </a>
-                    </div>";
-            }
-            echo "</div>";
-        }
+        echo "<div class='alert alert-warning text-center'>No movies found.</div>";
     }
-
-    $conn->close();
     ?>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+<?php
+$conn->close();
+?>
