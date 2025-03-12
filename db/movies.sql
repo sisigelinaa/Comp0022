@@ -4,44 +4,43 @@ USE movielens;
 
 -- Create Movies Table
 CREATE TABLE IF NOT EXISTS movies (
-    movieId VARCHAR(255) PRIMARY KEY,
+    movieId INT PRIMARY KEY,
     title VARCHAR(255),
     genres VARCHAR(255),
     year INT,
     actors VARCHAR(255),
     directors VARCHAR(255),
-    runtime INT,
+    runtime INT NULL,
     language VARCHAR(255),
     posterUrl VARCHAR(255),
-    boxOffice VARCHAR(255),
-    imdbRating FLOAT,
-    imdbVotes INT,
-    awards VARCHAR(255)
+    boxOffice BIGINT NULL,
+    imdbRating FLOAT NULL,
+    imdbVotes INT NULL
 );
 
 -- Create Links Table
 CREATE TABLE IF NOT EXISTS links (
-    movieId VARCHAR(255) PRIMARY KEY,
-    imdbId VARCHAR(255),
-    tmdbId VARCHAR(255)
+    movieId INT PRIMARY KEY,
+    imdbId INT,
+    tmdbId INT
 );
 
 -- Create Ratings Table
 CREATE TABLE IF NOT EXISTS ratings (
-    uniqueId VARCHAR(255) PRIMARY KEY,
-    userId VARCHAR(255),
-    movieId VARCHAR(255),
+    uniqueId INT PRIMARY KEY,
+    userId INT,
+    movieId INT,
     rating FLOAT,
-    timestamp BIGINT
+    timestamp VARCHAR(255)
 );
 
 -- Create Tags Table
 CREATE TABLE IF NOT EXISTS tags (
-    uniqueId VARCHAR(255) PRIMARY KEY,
-    userId VARCHAR(255),
-    movieId VARCHAR(255),
+    uniqueId INT PRIMARY KEY,
+    userId INT,
+    movieId INT,
     tag VARCHAR(255),
-    timestamp BIGINT
+    timestamp VARCHAR(255)
 );
 
 -- Create Actors Table
@@ -58,16 +57,16 @@ CREATE TABLE IF NOT EXISTS directors (
 
 -- Create ActorsMovies Table
 CREATE TABLE IF NOT EXISTS actorsMovies (
-    uniqueId VARCHAR(255) PRIMARY KEY,
+    uniqueId INT PRIMARY KEY,
     actorId VARCHAR(255),
-    movieId VARCHAR(255)
+    movieId INT
 );
 
 -- Create DirectorsMovies Table
 CREATE TABLE IF NOT EXISTS directorsMovies (
-    uniqueId VARCHAR(255) PRIMARY KEY,
+    uniqueId INT PRIMARY KEY,
     directorId VARCHAR(255),
-    movieId VARCHAR(255)
+    movieId INT
 );
 
 -- Load Movies Data
@@ -76,7 +75,13 @@ INTO TABLE movies
 FIELDS TERMINATED BY ',' 
 ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
-IGNORE 1 ROWS;
+IGNORE 1 ROWS
+(movieId, title, genres, year, actors, directors, @runtime, language, posterUrl, @boxOffice, @imdbRating, @imdbVotes)
+SET
+    runtime = NULLIF(@runtime, ''),
+    boxOffice = NULLIF(@boxOffice, ''),
+    imdbRating = NULLIF(@imdbRating, ''),
+    imdbVotes = NULLIF(@imdbVotes, '');
 
 -- Load Links Data
 LOAD DATA INFILE '/var/lib/mysql-files/links.csv'
