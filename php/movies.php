@@ -24,26 +24,32 @@
         die("<div class='alert alert-danger'>Connection failed: " . $conn->connect_error . "</div>");
     }
 
-    if (isset($_GET['id'])) {
-        $imdbID = $_GET['id'];
-        $apiKey = "973a80b2"; // Replace with your OMDB API Key
-        $url = "http://www.omdbapi.com/?i=" . urlencode($imdbID) . "&apikey=" . $apiKey;
-        $response = file_get_contents($url);
-        $data = json_decode($response, true);
+    if (isset($_GET['movieId'])) {
+        $movieId = $conn->real_escape_string($_GET['movieId']);
+        
+        $sql = "SELECT * FROM movies WHERE movieId = '$movieId'";
+        $result = $conn->query($sql);
+        
 
-        if ($data && $data['Response'] == "True") {
+        if ($result->num_rows > 0) {
+            $movie = $result->fetch_assoc();
+            $boxOffice = isset($movie['boxOffice']) ? preg_replace('/[^0-9]/', '', $movie['boxOffice']) : 0;
+            $formattedBoxOffice = $boxOffice ? "$" . number_format((int)$boxOffice, 0, '.', ',') : "N/A";
+        
             echo "<div class='card mx-auto' style='max-width: 600px;'>
-                    <img src='{$data['Poster']}' class='card-img-top' alt='{$data['Title']}'>
-                    <div class='card-body'>
-                        <h2 class='card-title'>{$data['Title']} ({$data['Year']})</h2>
-                        <p class='card-text'><strong>IMDB Rating:</strong> ⭐ {$data['imdbRating']}</p>
-                        <p class='card-text'><strong>Genre:</strong> {$data['Genre']}</p>
-                        <p class='card-text'><strong>Director:</strong> {$data['Director']}</p>
-                        <p class='card-text'><strong>Actors:</strong> {$data['Actors']}</p>
-                        <p class='card-text'><strong>Plot:</strong> {$data['Plot']}</p>
-                    </div>
-                </div>";
-        } else {
+            <img src='{$movie['posterUrl']}' class='card-img-top' alt='{$movie['title']}'>
+            <div class='card-body'>
+                <h2 class='card-title'>{$movie['title']}</h2>
+                <p class='card-text'><strong>IMDB Rating:</strong> ⭐ {$movie['imdbRating']}</p>
+                <p class='card-text'><strong>Genre:</strong> {$movie['genres']}</p>
+                <p class='card-text'><strong>Director:</strong> {$movie['directors']}</p>
+                <p class='card-text'><strong>Actors:</strong> {$movie['actors']}</p>
+                <p class='card-text'><strong>Box Office: 💵</strong> {$formattedBoxOffice}</p>
+                <p class='card-text'><strong>Runtime:</strong> {$movie['runtime']}</p>
+                <p class='card-text'><strong>Language:</strong> {$movie['language']}</p>
+            </div>
+        </div>";
+} else {
             echo "<div class='alert alert-warning text-center'>Movie details not found.</div>";
         }
     }
