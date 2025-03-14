@@ -76,12 +76,13 @@ FIELDS TERMINATED BY ','
 ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
 IGNORE 1 ROWS
-(movieId, title, genres, year, actors, directors, @runtime, language, posterUrl, @boxOffice, @imdbRating, @imdbVotes)
+(movieId, title, genres, @year, actors, directors, @runtime, language, posterUrl, @boxOffice, @imdbRating, @imdbVotes)
 SET
+    year = NULLIF(@year, ''),
     runtime = NULLIF(@runtime, ''),
     boxOffice = NULLIF(@boxOffice, ''),
     imdbRating = NULLIF(@imdbRating, ''),
-    imdbVotes = NULLIF(@imdbVotes, '');
+    imdbVotes = IF(@imdbVotes REGEXP '^[0-9]+$', @imdbVotes, NULL);
 
 -- Load Links Data
 LOAD DATA INFILE '/var/lib/mysql-files/links.csv'
