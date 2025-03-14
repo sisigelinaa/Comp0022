@@ -69,6 +69,55 @@ CREATE TABLE IF NOT EXISTS directorsMovies (
     movieId INT
 );
 
+-- Create Personality Data Table
+CREATE TABLE IF NOT EXISTS personalityData (
+    uniqueId INT PRIMARY KEY,
+    userId VARCHAR(255),
+    openness FLOAT NULL,
+    agreeableness FLOAT NULL,
+    emotionalStability FLOAT NULL,
+    conscientiousness FLOAT NULL,
+    extraversion FLOAT NULL,
+    assignedMetric VARCHAR(255),
+    assignedCondition VARCHAR(255),
+    movie1 INT NULL,
+    predictedRating1 FLOAT NULL,
+    movie2 INT NULL,
+    predictedRating2 FLOAT NULL,
+    movie3 INT NULL,
+    predictedRating3 FLOAT NULL,
+    movie4 INT NULL,
+    predictedRating4 FLOAT NULL,
+    movie5 INT NULL,
+    predictedRating5 FLOAT NULL,
+    movie6 INT NULL,
+    predictedRating6 FLOAT NULL,
+    movie7 INT NULL,
+    predictedRating7 FLOAT NULL,
+    movie8 INT NULL,
+    predictedRating8 FLOAT NULL,
+    movie9 INT NULL,
+    predictedRating9 FLOAT NULL,
+    movie10 INT NULL,
+    predictedRating10 FLOAT NULL,
+    movie11 INT NULL,
+    predictedRating11 FLOAT NULL,
+    movie12 INT NULL,
+    predictedRating12 FLOAT NULL,
+    isPersonalized INT NULL,
+    enjoyWatching INT NULL
+);
+
+-- Create Ratings Personality Table
+CREATE TABLE IF NOT EXISTS ratingsPersonality (
+    uniqueId INT PRIMARY KEY,
+    userId VARCHAR(255),
+    movieId INT NULL,
+    rating FLOAT NULL,
+    timestamp VARCHAR(255)
+);
+
+
 -- Load Movies Data
 LOAD DATA INFILE '/var/lib/mysql-files/movies.csv'
 INTO TABLE movies
@@ -135,6 +184,20 @@ IGNORE 1 ROWS;
 -- Load DirectorsMovies Data
 LOAD DATA INFILE '/var/lib/mysql-files/directors_movies.csv'
 INTO TABLE directorsMovies
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+LOAD DATA INFILE '/var/lib/mysql-files/personality_data.csv'
+INTO TABLE personalityData
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+LOAD DATA INFILE '/var/lib/mysql-files/ratings_personality.csv'
+INTO TABLE ratingsPersonality
 FIELDS TERMINATED BY ',' 
 ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
