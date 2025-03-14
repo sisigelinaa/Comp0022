@@ -134,7 +134,7 @@
         <a href="index.php" class="btn btn-primary">Back to Dashboard</a>
     </div>
 
-            <!--  Low chart  --> 
+            <!--  High chart  --> 
 
     <div class="card bg-secondary text-light mb-4">
         <div class="card-body text-center">

@@ -29,12 +29,62 @@
         
         $sql = "SELECT * FROM movies WHERE movieId = '$movieId'";
         $result = $conn->query($sql);
+
         
 
         if ($result->num_rows > 0) {
             $movie = $result->fetch_assoc();
             $boxOffice = isset($movie['boxOffice']) ? preg_replace('/[^0-9]/', '', $movie['boxOffice']) : 0;
             $formattedBoxOffice = $boxOffice ? "$" . number_format((int)$boxOffice, 0, '.', ',') : "N/A";
+
+            // Extract users who disliked the movie
+            $sqlDislikedUsers = "
+                SELECT userId 
+                FROM ratings 
+                WHERE movieId = '$movieId' AND rating <= 2
+            ";
+            $resultDislikedUsers = $conn->query($sqlDislikedUsers);
+
+            if ($resultDislikedUsers->num_rows > 0) {
+                // get the list of users who disliked the movie
+                $dislikedUsers = [];
+                while ($row = $resultDislikedUsers->fetch_assoc()) {
+                    $dislikedUsers[] = $row['userId'];
+                }
+
+                // get the genre of the current movie
+                $genre = $movie['genres'];
+
+                // count how many times these users also disliked other movies in the same genre
+                $sqlSameGenreDislikes = "
+                    SELECT COUNT(*) AS sameGenreDislikes
+                    FROM ratings r
+                    JOIN movies m ON r.movieId = m.movieId
+                    WHERE r.userId IN (" . implode(',', $dislikedUsers) . ")
+                      AND m.genres LIKE '%$genre%'
+                      AND r.rating <= 2
+                      AND m.movieId != '$movieId'
+                ";
+                $resultSameGenreDislikes = $conn->query($sqlSameGenreDislikes);
+                $sameGenreDislikes = $resultSameGenreDislikes->fetch_assoc()['sameGenreDislikes'];
+
+                // count how many times these users disliked other movies in different genres
+                $sqlOtherGenreDislikes = "
+                    SELECT COUNT(*) AS otherGenreDislikes
+                    FROM ratings r
+                    JOIN movies m ON r.movieId = m.movieId
+                    WHERE r.userId IN (" . implode(',', $dislikedUsers) . ")
+                      AND m.genres NOT LIKE '%$genre%'
+                      AND r.rating <= 2
+                ";
+                $resultOtherGenreDislikes = $conn->query($sqlOtherGenreDislikes);
+                $otherGenreDislikes = $resultOtherGenreDislikes->fetch_assoc()['otherGenreDislikes'];
+
+                // Determine the boolean result
+                $isGenreSpecificDislike = ($sameGenreDislikes > $otherGenreDislikes);
+            } else {
+                $isGenreSpecificDislike = false; // No users disliked the movie
+            }
         
             echo "<div class='card mx-auto' style='max-width: 600px;'>
             <img src='{$movie['posterUrl']}' class='card-img-top' alt='{$movie['title']}'>
@@ -47,6 +97,7 @@
                 <p class='card-text'><strong>Box Office: 💵</strong> {$formattedBoxOffice}</p>
                 <p class='card-text'><strong>Runtime:</strong> {$movie['runtime']}</p>
                 <p class='card-text'><strong>Language:</strong> {$movie['language']}</p>
+                <p class='card-text'><strong>Genre-Specific Dislike:</strong> " . ($isGenreSpecificDislike ? 'True' : 'False') . "</p>
             </div>
         </div>";
 } else {
