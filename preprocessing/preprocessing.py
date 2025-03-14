@@ -15,27 +15,6 @@ def clean_movies_csv(input_file, output_file):
         else:
             df.at[index, 'year'] = None
 
-    # # remove year from title string
-    # df['title'] = df['title'].apply(lambda x: re.sub(r' \(\d{4}\)\s*$', '', x))
-
-    # convert year col to ints (because None values make col float)
-    df['year'] = pd.to_numeric(df['year'], errors='coerce').fillna(-1).astype(int)
-    
-    # handle rows with year = -1 (invalid year values)
-    missing_years = df[df['year'] == -1]
-    if not missing_years.empty:
-        print("Movies with missing years:")
-        print(missing_years[['movieId', 'title', 'genres']])
-        # drop these rows if there are any as we can't use incomplete data
-        df = df[df['year'] != -1]
-
-    # TODO: task 2 uses this, revert? although
-    # # split genres into multiple rows
-    # df = df.assign(genre=df['genres'].str.split('|')).explode('genre').drop('genres', axis=1)
-
-    # # add a decade column (not sure if we need this)
-    # df['decade'] = (df['year'] // 10) * 10
-
     df.to_csv(output_file, index=False)
     print(f"Cleaned data saved to {output_file}")
 
@@ -127,8 +106,8 @@ def add_actors_and_directors(movies_input_file, links_input_file, actors_output_
     i = 0
     for movieId, imdbId in links.items():
         i += 1
-        if i > 100:  # TODO: remove this break when done testing, to process all 10000 records
-            break
+        # if i > 10:  # TODO: remove this break when done testing, to process all 10000 records
+        #     break
         print(f"{i}/{len(links)}: Fetching data for IMDb ID {imdbId}...")
 
         try:
@@ -166,19 +145,6 @@ def add_actors_and_directors(movies_input_file, links_input_file, actors_output_
             movies[movieId]["imdbRating"] = movie.get("rating", "")
             movies[movieId]["imdbVotes"] = movie.get("votes", "")
 
-            # # Fetch awards information TODO
-            # awards = ia.get_movie_awards(movie.movieID)
-
-            # # Extract awards data
-            # awards_list = []
-            # # Check if awards data exists
-            # if awards and "data" in awards and "awards" in awards["data"]:
-            #     for award in awards["data"]["awards"]:
-            #         award_name = award.get("award", "")
-            #         award_result = award.get("result", "")
-            #         awards_list.append(f"{award_result}: {award_name}")
-            # movies[movieId]["awards"] = "|".join(awards_list)
-
             # Add actors and directors to respective dictionaries
             for actor in actors:
                 actorId = actor.personID
@@ -201,8 +167,8 @@ def add_actors_and_directors(movies_input_file, links_input_file, actors_output_
                 directors_movies_ids_csv_dict[uniqueId] = [directorId, movieId]
 
         except Exception as e:
-            del movies[movieId]
             print(f"Failed to fetch data for IMDb ID {imdbId}: {e}")
+            print(movies[movieId])
 
         time.sleep(0.5)  # Sleep to avoid rate limiting
 
@@ -211,7 +177,7 @@ def add_actors_and_directors(movies_input_file, links_input_file, actors_output_
         fieldnames = [
         "movieId", "title", "genres", "year", "actors", "directors",
         "runtime", "language", "posterUrl", "boxOffice", "imdbRating",
-        "imdbVotes", #"awards"
+        "imdbVotes",
         ]
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         

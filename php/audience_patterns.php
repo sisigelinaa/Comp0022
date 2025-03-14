@@ -104,8 +104,8 @@
 
     <div class="card bg-secondary text-light mb-4">
         <div class="card-body text-center">
-            <p>Users who rated <span class="genre-a">Genre A</span> highly (average > 3.5/5)</p>
-            <p>Correlation with other genres:</p>
+            <p>Users who rated selected genre highly (average > 3.5/5)</p>
+            <p>What these users thought of other genres (rating correlation):</p>
         </div>
     </div>
 

@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS movies (
     movieId INT PRIMARY KEY,
     title VARCHAR(255),
     genres VARCHAR(255),
-    year INT,
+    year INT NULL,
     actors VARCHAR(255),
     directors VARCHAR(255),
     runtime INT NULL,
