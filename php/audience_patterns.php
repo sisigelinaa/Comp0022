@@ -24,7 +24,8 @@
                 AVG(r.rating) AS avg_rating
               FROM ratings r
               JOIN movies m ON r.movieId = m.movieId
-              JOIN (SELECT 1 n UNION SELECT 2 UNION SELECT 3 UNION SELECT 4) n
+              JOIN (SELECT 1 n UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 
+                UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) n
                 ON CHAR_LENGTH(m.genres) - CHAR_LENGTH(REPLACE(m.genres, '|', '')) >= n.n - 1
               GROUP BY r.userId, genre";
     
@@ -38,42 +39,73 @@
 
     // Get unique genres and prepare results
     $genres = array_keys($genreRatings);
-    $results = [];
+    $resultsHigh = [];
+    $resultsLow = [];
 
     foreach ($genres as $genreA) {
+
+        // Filter users with ratings >= 3.5 in genreA
+        $usersAHigh = array_filter(
+            $genreRatings[$genreA], 
+            fn($rating) => $rating >= 3.5
+        );
+        // Filter users with ratings <= 2 in genreA
+        $usersALow = array_filter(
+            $genreRatings[$genreA], 
+            fn($rating) => $rating <= 2
+        );
+        
         foreach ($genres as $genreB) {
             if ($genreA === $genreB) continue;
             
-            // Filter users with ratings > 3.5 in genreA
-            $usersA = array_filter(
-                $genreRatings[$genreA], 
-                fn($rating) => $rating > 3.5
+            $commonUsersHigh = array_intersect_key(
+                $usersAHigh,
+                $genreRatings[$genreB] ?? []
             );
-            
-            $commonUsers = array_intersect_key(
-                $usersA,
+            $commonUsersLow = array_intersect_key(
+                $usersALow,
                 $genreRatings[$genreB] ?? []
             );
             
-            if (count($commonUsers) < 10) continue;
+            if (count($commonUsersHigh) > 10) {
+                // Get paired ratings
+                $ratingsAHigh = [];
+                $ratingsBHigh = [];
+                foreach ($commonUsersHigh as $userId => $ratingA) {
+                    $ratingsAHigh[] = $ratingA;
+                    $ratingsBHigh[] = $genreRatings[$genreB][$userId];
+                }
 
-            // Get paired ratings
-            $ratingsA = [];
-            $ratingsB = [];
-            foreach ($commonUsers as $userId => $ratingA) {
-                $ratingsA[] = $ratingA;
-                $ratingsB[] = $genreRatings[$genreB][$userId];
+                // Calculate correlation
+                $correlationHigh = pearsonCorrelation($ratingsAHigh, $ratingsBHigh);
+
+                $resultsHigh[] = [
+                    'genreA' => $genreA,
+                    'genreB' => $genreB,
+                    'correlation' => round($correlationHigh, 2),
+                    'users' => count($commonUsersHigh)
+                ];
             }
+            
+            if (count($commonUsersLow) > 10) {
+                // Get paired ratings
+                $ratingsALow = [];
+                $ratingsBLow = [];
+                foreach ($commonUsersLow as $userId => $ratingA) {
+                    $ratingsALow[] = $ratingA;
+                    $ratingsBLow[] = $genreRatings[$genreB][$userId];
+                }
 
-            // Calculate correlation
-            $correlation = pearsonCorrelation($ratingsA, $ratingsB);
+                // Calculate correlation
+                $correlationLow = pearsonCorrelation($ratingsALow, $ratingsBLow);
 
-            $results[] = [
-                'genreA' => $genreA,
-                'genreB' => $genreB,
-                'correlation' => round($correlation, 2),
-                'users' => count($commonUsers)
-            ];
+                $resultsLow[] = [
+                    'genreA' => $genreA,
+                    'genreB' => $genreB,
+                    'correlation' => round($correlationLow, 2),
+                    'users' => count($commonUsersLow)
+                ];
+            }
         }
     }
 
@@ -102,16 +134,18 @@
         <a href="index.php" class="btn btn-primary">Back to Dashboard</a>
     </div>
 
+            <!--  Low chart  --> 
+
     <div class="card bg-secondary text-light mb-4">
         <div class="card-body text-center">
-            <p>Users who rated selected genre highly (average > 3.5/5)</p>
+            <p>Users who rated selected genre highly (average >= 3.5/5)</p>
             <p>What these users thought of other genres (rating correlation):</p>
         </div>
     </div>
 
     <div class="row">
         <div class="col-md-4">
-            <select id="genreSelect" class="form-select bg-dark text-light">
+            <select id="genreSelectHigh" class="form-select bg-dark text-light">
                 <option value="">Select a Genre...</option>
                 <?php foreach($genres as $genre): ?>
                     <option value="<?= $genre ?>"><?= $genre ?></option>
@@ -121,13 +155,43 @@
     </div>
 
     <div class="chart-container mt-4" style="height: 60vh">
-        <canvas id="correlationChart"></canvas>
+        <canvas id="correlationChartHigh"></canvas>
     </div>
+
+    <div style="height: 40px;"></div>
+    
+            <!--  Low chart  --> 
+
+    <div class="card bg-secondary text-light mb-4">
+        <div class="card-body text-center">
+            <p>Users who rated selected genre poorly (average <= 2/5)</p>
+            <p>What these users thought of other genres (rating correlation):</p>
+            <p>(Note: less data available; less people rate poorly)</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <select id="genreSelectLow" class="form-select bg-dark text-light">
+                <option value="">Select a Genre...</option>
+                <?php foreach($genres as $genre): ?>
+                    <option value="<?= $genre ?>"><?= $genre ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+    </div>
+
+    <div class="chart-container mt-4" style="height: 60vh">
+        <canvas id="correlationChartLow"></canvas>
+    </div>
+
+    <div style="height: 40px;"></div>
 
     <script>
         // Pass PHP data to JavaScript
-        const correlations = <?= json_encode($results) ?>;
-        let chart;
+        const correlationsHigh = <?= json_encode($resultsHigh) ?>;
+        const correlationsLow = <?= json_encode($resultsLow) ?>;
+        let chartHigh, chartLow;
 
         // Chart configuration
         const config = {
@@ -150,21 +214,34 @@
                         min: -1,
                         max: 1,
                         ticks: { color: '#fff' },
-                        grid: { color: 'rgba(255,255,255,0.1)' }
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        title: {
+                            display: true,
+                            text: 'Correlation Value',
+                            color: '#fff'
+                        },
                     },
                     x: {
                         ticks: { 
                             color: '#fff',
                             autoSkip: false
-                        }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Genres',
+                            color: '#fff'
+                        },
                     }
                 },
                 plugins: {
                     legend: { display: false },
                     tooltip: {
                         callbacks: {
-                            label: (ctx) => 
-                                `Correlation: ${ctx.raw.toFixed(2)} (${ctx.raw.users} users)`
+                            label: (ctx) => {
+                                const correlation = ctx.raw.y; // Access the correlation value
+                                const users = ctx.raw.users; // Access the number of users
+                                return `Correlation: ${correlation.toFixed(2)} (${users} users)`;
+                            }
                         }
                     }
                 }
@@ -172,21 +249,35 @@
         };
 
         // Initialize chart
-        chart = new Chart(document.getElementById('correlationChart'), config);
+        chartHigh = new Chart(document.getElementById('correlationChartHigh'), config);
+        chartLow = new Chart(document.getElementById('correlationChartLow'), config);
 
         // Genre selector handler
-        document.getElementById('genreSelect').addEventListener('change', function() {
+        document.getElementById('genreSelectHigh').addEventListener('change', function() {
             const genre = this.value;
-            const filtered = correlations.filter(item => item.genreA === genre);
+            const filtered = correlationsHigh.filter(item => item.genreA === genre);
             
-            chart.data.labels = filtered.map(item => item.genreB);
-            chart.data.datasets[0].data = filtered.map(item => ({
+            chartHigh.data.labels = filtered.map(item => item.genreB);
+            chartHigh.data.datasets[0].data = filtered.map(item => ({
                 x: item.genreB,
                 y: item.correlation,
                 users: item.users
             }));
             
-            chart.update();
+            chartHigh.update();
+        });
+        document.getElementById('genreSelectLow').addEventListener('change', function() {
+            const genre = this.value;
+            const filtered = correlationsLow.filter(item => item.genreA === genre);
+            
+            chartLow.data.labels = filtered.map(item => item.genreB);
+            chartLow.data.datasets[0].data = filtered.map(item => ({
+                x: item.genreB,
+                y: item.correlation,
+                users: item.users
+            }));
+            
+            chartLow.update();
         });
     </script>
 </div>
