@@ -69,6 +69,30 @@ CREATE TABLE IF NOT EXISTS directorsMovies (
     movieId INT
 );
 
+CREATE TABLE IF NOT EXISTS users (
+    username VARCHAR(255) PRIMARY KEY,
+    name VARCHAR(255),
+    surname VARCHAR(255),
+    gender VARCHAR(255),
+    age INT,
+    password INT
+);
+
+CREATE TABLE IF NOT EXISTS lists (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255),
+    title VARCHAR(255),
+    description TEXT,
+    FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS list_movies (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    list_id INT,
+    movie_id INT,
+    FOREIGN KEY (list_id) REFERENCES lists(id) ON DELETE CASCADE
+);
+
 -- Load Movies Data
 LOAD DATA INFILE '/var/lib/mysql-files/movies.csv'
 INTO TABLE movies

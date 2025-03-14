@@ -18,26 +18,14 @@ if ($conn->connect_error) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Movie Info Finder</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="styles.css">
-    <style>
-        .movie-card {
-            transition: transform 0.2s;
-        }
-        .movie-card:hover {
-            transform: scale(1.1);
-        }
-        .genre-bar {
-            overflow-x: auto;
-            white-space: nowrap;
-        }
-        .genre-bar a {
-            display: inline-block;
-            margin-right: 10px;
-        }
-    </style>
 </head>
 <body class="text-light" style="background-color: #141414;">
 <div class="container mt-4">
+<div class="container mt-4"> <div class="text-end">
+        <a href="landing_page.php" class="btn btn-primary">Log In</a>
+    </div>
     <h1 class="text-center">🎬 Movie Finder</h1>
 
     <div class="text-center my-3 genre-bar">
@@ -49,9 +37,11 @@ if ($conn->connect_error) {
         ?>
     </div>
 
-    <!-- Button to Open Correlation Page -->
     <div class="text-center my-4">
-        <a href="audience_patterns.php" class="btn btn-primary">View Genre Correlations</a>
+        <a href="audience_patterns.php" class="btn btn-primary btn-sm">View Genre Correlations</a>
+        <a href="genre_report.php" class="btn btn-info btn-sm">View Genre Reports (Table)</a>
+        <a href="genre_histograms.php?type=popularity" class="btn btn-primary btn-sm">View Genre Popularity Histogram</a>
+        <a href="genre_histograms.php?type=polarization" class="btn btn-warning btn-sm">View Genre Polarization Histogram</a>
     </div>
 
     <form method="GET" class="my-4">
@@ -78,17 +68,12 @@ if ($conn->connect_error) {
                     <option value="5">5+</option>
                 </select>
             </div>
-        </div>
-        <div class="text-center mt-3">
-            <button type="submit" class="btn btn-danger">Search</button>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> Search</button>        
+            </div>
         </div>
     </form>
 
-    <div class="text-center my-3">
-        <a href="genre_report.php" class="btn btn-info">View Genre Reports (Table)</a>
-        <a href="genre_histograms.php?type=popularity" class="btn btn-primary">View Genre Popularity Histogram</a>
-        <a href="genre_histograms.php?type=polarization" class="btn btn-warning">View Genre Polarization Histogram</a>
-    </div>
 
     <?php
     $sql = "SELECT * FROM movies WHERE 1=1";
@@ -126,7 +111,7 @@ if ($conn->connect_error) {
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
-        echo "<div class='row row-cols-2 row-cols-md-4 g-2'>";
+        echo "<div class='row row-cols-2 row-cols-md-3 row-cols-lg-6 g-2'>";
         while ($row = $result->fetch_assoc()) {
             $title = htmlspecialchars($row['title']);
             $year = htmlspecialchars($row['year']);
