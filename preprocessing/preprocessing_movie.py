@@ -4,71 +4,78 @@ import csv
 import time
 from imdb import IMDb
 
+
 def clean_movies_csv(input_file, output_file):
     df = pd.read_csv(input_file)
 
     # extract year from the title col using regex ((\d{4}) represents year bit), add to year col
     for index, row in df.iterrows():
-        match = re.search(r'\((\d{4})\)\s*$', row['title']) # works even if trailing spaces at end
+        match = re.search(
+            r"\((\d{4})\)\s*$", row["title"]
+        )  # works even if trailing spaces at end
         if match:
-            df.at[index, 'year'] = int(match.group(1))
+            df.at[index, "year"] = int(match.group(1))
         else:
-            df.at[index, 'year'] = None
+            df.at[index, "year"] = None
 
     df.to_csv(output_file, index=False)
     print(f"Cleaned data saved to {output_file}")
+
 
 def clean_ratings_csv(input_file, output_file):
     df = pd.read_csv(input_file)
 
     # convert the 'timestamp' column to a readable date and time
-    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
+    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s")
 
     # Add a unique ID column (starting from 1)
-    df.insert(0, 'uniqueId', range(1, len(df) + 1))
+    df.insert(0, "uniqueId", range(1, len(df) + 1))
 
     df.to_csv(output_file, index=False)
     print(f"Cleaned ratings data saved to {output_file}")
+
 
 def clean_links_csv(input_file, output_file):
     df = pd.read_csv(input_file)
 
     # fill missing tmdbId values with -1
-    df['tmdbId'] = df['tmdbId'].fillna(-1)
+    df["tmdbId"] = df["tmdbId"].fillna(-1)
 
     # convert tmdbId to integer
-    df['tmdbId'] = df['tmdbId'].astype(int)
+    df["tmdbId"] = df["tmdbId"].astype(int)
 
     # remove duplicate movieId entries
-    df = df.drop_duplicates(subset='movieId')
+    df = df.drop_duplicates(subset="movieId")
 
     df.to_csv(output_file, index=False)
     print(f"Cleaned links data saved to {output_file}")
+
 
 def clean_tags_csv(input_file, output_file):
     df = pd.read_csv(input_file)
 
     # convert the 'timestamp' column to a readable date format
-    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
+    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s")
 
     # remove exact duplicate rows
     df = df.drop_duplicates()
 
     # Add a unique ID column (starting from 1)
-    df.insert(0, 'uniqueId', range(1, len(df) + 1))
+    df.insert(0, "uniqueId", range(1, len(df) + 1))
 
     df.to_csv(output_file, index=False)
     print(f"Cleaned tags data saved to {output_file}")
 
+
 # Input and output file paths
-movies_input_file = './csv/raw_csv/movies_raw.csv'
-movies_output_file = './csv/movies.csv'
-ratings_input_file = './csv/raw_csv/ratings_raw.csv'
-ratings_output_file = './csv/ratings.csv'
-links_input_file = './csv/raw_csv/links_raw.csv'
-links_output_file = './csv/links.csv'
-tags_input_file = './csv/raw_csv/tags_raw.csv'
-tags_output_file = './csv/tags.csv'
+movies_input_file = "./csv/raw_csv/movies_raw.csv"
+movies_output_file = "./csv/movies.csv"
+ratings_input_file = "./csv/raw_csv/ratings_raw.csv"
+ratings_output_file = "./csv/ratings.csv"
+links_input_file = "./csv/raw_csv/links_raw.csv"
+links_output_file = "./csv/links.csv"
+tags_input_file = "./csv/raw_csv/tags_raw.csv"
+tags_output_file = "./csv/tags.csv"
 
 # Run the cleaning functions
 clean_movies_csv(movies_input_file, movies_output_file)
@@ -79,7 +86,14 @@ clean_tags_csv(tags_input_file, tags_output_file)
 print("Preprocessing complete. Cleaned files saved.")
 
 
-def add_actors_and_directors(movies_input_file, links_input_file, actors_output_file, directors_output_file, actors_movies_output_file, directors_movies_output_file):
+def add_actors_and_directors(
+    movies_input_file,
+    links_input_file,
+    actors_output_file,
+    directors_output_file,
+    actors_movies_output_file,
+    directors_movies_output_file,
+):
     # initialize IMDbPY - this allows us to fetch data from IMDb
     ia = IMDb()
 
@@ -123,13 +137,19 @@ def add_actors_and_directors(movies_input_file, links_input_file, actors_output_
 
             # Extract relevant details
             movies[movieId]["actors"] = "|".join([actor["name"] for actor in actors])
-            movies[movieId]["directors"] = "|".join([director["name"] for director in directors])
+            movies[movieId]["directors"] = "|".join(
+                [director["name"] for director in directors]
+            )
             movies[movieId]["runtime"] = movie.get("runtimes", [""])[0]
-            movies[movieId]["language"] = "|".join(movie.get("languages", []))  # Languages
+            movies[movieId]["language"] = "|".join(
+                movie.get("languages", [])
+            )  # Languages
             movies[movieId]["posterUrl"] = movie.get("cover url", "")  # Poster URL
 
             # Fetch box office value
-            box_office_string = movie.get("box office", {}).get("Cumulative Worldwide Gross", "")
+            box_office_string = movie.get("box office", {}).get(
+                "Cumulative Worldwide Gross", ""
+            )
             # Convert to integer (from $435,345,234 13 December 2020 etc. format)
             if box_office_string:
                 box_office_string = box_office_string.replace("$", "").replace(",", "")
@@ -137,9 +157,13 @@ def add_actors_and_directors(movies_input_file, links_input_file, actors_output_
                 if numeric_part:
                     movies[movieId]["boxOffice"] = int(numeric_part.group())
                 else:
-                    movies[movieId]["boxOffice"] = None  # Set to None if no numeric part is found
+                    movies[movieId][
+                        "boxOffice"
+                    ] = None  # Set to None if no numeric part is found
             else:
-                movies[movieId]["boxOffice"] = None  # Set to None if box office data is missing
+                movies[movieId][
+                    "boxOffice"
+                ] = None  # Set to None if box office data is missing
 
             # Extract critic scores
             movies[movieId]["imdbRating"] = movie.get("rating", "")
@@ -151,7 +175,7 @@ def add_actors_and_directors(movies_input_file, links_input_file, actors_output_
                 if actorId not in actors_csv_dict:
                     actors_csv_dict[actorId] = {
                         "actorName": actor["name"]
-                    }   # extendable
+                    }  # extendable
                 # linking ids for actor-movie relationship
                 uniqueId = len(actors_movies_ids_csv_dict) + 1
                 actors_movies_ids_csv_dict[uniqueId] = [actorId, movieId]
@@ -161,7 +185,7 @@ def add_actors_and_directors(movies_input_file, links_input_file, actors_output_
                 if directorId not in directors_csv_dict:
                     directors_csv_dict[directorId] = {
                         "directorName": director["name"]
-                    }   # extendable
+                    }  # extendable
                 # linking ids for director-movie relationship
                 uniqueId = len(directors_movies_ids_csv_dict) + 1
                 directors_movies_ids_csv_dict[uniqueId] = [directorId, movieId]
@@ -175,12 +199,21 @@ def add_actors_and_directors(movies_input_file, links_input_file, actors_output_
     # Write updated movies data back to file
     with open(movies_input_file, "w", newline="", encoding="utf-8") as file:
         fieldnames = [
-        "movieId", "title", "genres", "year", "actors", "directors",
-        "runtime", "language", "posterUrl", "boxOffice", "imdbRating",
-        "imdbVotes",
+            "movieId",
+            "title",
+            "genres",
+            "year",
+            "actors",
+            "directors",
+            "runtime",
+            "language",
+            "posterUrl",
+            "boxOffice",
+            "imdbRating",
+            "imdbVotes",
         ]
         writer = csv.DictWriter(file, fieldnames=fieldnames)
-        
+
         writer.writeheader()
         for movie in movies.values():
             writer.writerow(movie)
@@ -203,7 +236,6 @@ def add_actors_and_directors(movies_input_file, links_input_file, actors_output_
         for directorId, director in directors_csv_dict.items():
             writer.writerow([directorId, director["directorName"]])
 
-
     print(f"Directors data saved to {directors_output_file}")
 
     # Write actor-movie relationships CSV
@@ -225,6 +257,14 @@ def add_actors_and_directors(movies_input_file, links_input_file, actors_output_
     print(f"Director-movie id pairs saved to {directors_movies_output_file}")
 
 
-add_actors_and_directors("./csv/movies.csv", "./csv/links.csv",
-                         "./csv/actors.csv", "./csv/directors.csv", "./csv/actors_movies.csv", "./csv/directors_movies.csv")
-print("Actors, directors, and actor-movie and director-movie relationship files saved successfully!")
+add_actors_and_directors(
+    "./csv/movies.csv",
+    "./csv/links.csv",
+    "./csv/actors.csv",
+    "./csv/directors.csv",
+    "./csv/actors_movies.csv",
+    "./csv/directors_movies.csv",
+)
+print(
+    "Actors, directors, and actor-movie and director-movie relationship files saved successfully!"
+)
