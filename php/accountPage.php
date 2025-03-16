@@ -292,7 +292,7 @@ if ($result->num_rows > 0) {
         echo "
                 <div class='col'>
                  <a href='movieData.php?movieId=$movieId' class='text-decoration-none'>
-                    <div class='card bg-dark movie-card'>
+                    <div class='card bg-dark movie-card h-100'>
                         <img src='$poster' class='card-img-top' alt='$title'>
                         <div class='card-body text-center'>
                             <h6 class='text-light'>$title</h6>
