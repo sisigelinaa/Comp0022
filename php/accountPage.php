@@ -175,7 +175,8 @@ $lists = $conn->query("SELECT * FROM lists WHERE username = '$loggedInUser'");
                                         <div class="row">
                                             <?php foreach ($movies as $movie): ?>
                                                 <div class="col-4 text-center">
-                                                    <a href="movieData.php?id=<?= $movie['movieId'] ?>" class="text-decoration-none">
+                                                    <a href="movieData.php?id=<?= $movie['movieId'] ?>"
+                                                        class="text-decoration-none">
                                                         <img src="<?= $movie['posterUrl'] ?>"
                                                             alt="<?= htmlspecialchars($movie['title']) ?>"
                                                             class="img-fluid rounded">
@@ -292,13 +293,14 @@ if ($result->num_rows > 0) {
         echo "
                 <div class='col'>
                  <a href='movieData.php?movieId=$movieId' class='text-decoration-none'>
-                    <div class='card bg-dark movie-card h-100'>
+                    <div class='card bg-dark movie-card h-100 d-flex flex-column'>
                         <img src='$poster' class='card-img-top' alt='$title'>
-                        <div class='card-body text-center'>
+                        <div class='card-body text-center d-flex flex-column flex-grow-1'>
                             <h6 class='text-light'>$title</h6>
                             <p class='text-light'>⭐ $rating</p>
                             <p class='text-light'>$genre</p>
                             <p class='text-light'><strong>Actors:</strong> $actors</p>
+                            <div class = 'mt-auto'>
                             <div class='dropdown'>
                                 <button class='btn btn-primary dropdown-toggle' type='button' id='dropdownMenuButton_$movieId' data-bs-toggle='dropdown' aria-expanded='false'>
                                     <i class='bi bi-plus'></i>
@@ -324,6 +326,7 @@ if ($result->num_rows > 0) {
         }
 
         echo "              </ul>
+                            </div>
                             </div>
                         </div>
                     </div>
