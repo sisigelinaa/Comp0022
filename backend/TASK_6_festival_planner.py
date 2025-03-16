@@ -1,1 +1,0 @@
-# Task 6 - Festival Movie List Planner

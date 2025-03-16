@@ -11,7 +11,7 @@ h1 {
     text-align: center;
 }
 
-.container-reg{
+.container-reg {
     max-width: 400px;
     margin: 10px auto;
     background: rgba(0, 0, 0, 0.8);
@@ -21,7 +21,7 @@ h1 {
 
 .movie-card {
     transition: transform 0.2s;
-    max-width: 180px; 
+    max-width: 180px;
     padding: 8px;
     background-color: #222;
     border-radius: 10px;

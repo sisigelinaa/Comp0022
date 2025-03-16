@@ -13,13 +13,13 @@ if ($conn->connect_error) {
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $conn->real_escape_string($_POST['username']);
     $password = $_POST['password'];
-    
+
     $query = $conn->query("SELECT * FROM users WHERE username = '$username'");
     if ($query->num_rows > 0) {
         $user = $query->fetch_assoc();
         if (password_verify($password, $user['password'])) {
             $_SESSION['username'] = $username;
-            header("Location: user_login.php");
+            header("Location: accountPage.php");
             exit();
         } else {
             $error = "Incorrect password.";
@@ -32,6 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -40,9 +41,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="styles.css">
     <style>
         body {
-            background:  rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.8);
             background-size: cover;
         }
+
         .container {
             max-width: 400px;
             margin-top: 100px;
@@ -50,10 +52,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             padding: 30px;
             border-radius: 10px;
         }
+
         h1 {
             color: #ffcc00;
             text-shadow: 2px 2px 10px rgba(255, 204, 0, 0.8);
         }
+
         .small-btns a {
             display: inline-block;
             width: auto;
@@ -61,34 +65,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     </style>
 </head>
+
 <body class="text-light">
 
-<div class="container">
-    <h1 class="text-center">Log In</h1>
-    
-    <?php if (isset($error)): ?>
-        <div class="alert alert-danger"> <?= $error ?> </div>
-    <?php endif; ?>
-    
-    <form method="POST">
-        <div class="mb-3">
-            <label class="form-label">Username</label>
-            <input type="text" name="username" class="form-control w-100" required>
+    <div class="container">
+        <h1 class="text-center">Log In</h1>
+
+        <?php if (isset($error)): ?>
+            <div class="alert alert-danger"> <?= $error ?> </div>
+        <?php endif; ?>
+
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                <input type="text" name="username" class="form-control w-100" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-control w-100" required>
+            </div>
+            <button type="submit" class="btn btn-primary d-block mx-auto w-40">Log In</button>
+        </form>
+
+        <div class="text-center mt-3 small-btns">
+            <a href="dashboard.php" class="btn btn-outline-light btn-sm"
+                style="background-color: rgb(192, 177, 119);">Browse as Guest</a>
+            <a href="register.php" class="btn btn-success btn-sm">Register</a>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Password</label>
-            <input type="password" name="password" class="form-control w-100" required>
-        </div>
-        <button type="submit" class="btn btn-primary d-block mx-auto w-40">Log In</button>
-    </form>
-    
-    <div class="text-center mt-3 small-btns">
-        <a href="index.php" class="btn btn-outline-light btn-sm" style="background-color: rgb(192, 177, 119);">Browse as Guest</a>
-        <a href="register.php" class="btn btn-success btn-sm" >Register</a>
+
     </div>
 
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
