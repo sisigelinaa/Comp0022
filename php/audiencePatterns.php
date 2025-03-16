@@ -53,8 +53,8 @@
             );
             // Filter users with ratings <= 2 in genreA
             $usersALow = array_filter(
-                $genreRatings[$genreA],
-                callback: fn($rating) => $rating <= 2
+                $genreRatings[$genreA], 
+                fn($rating) => $rating <= 2
             );
 
             foreach ($genres as $genreB) {
