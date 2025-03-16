@@ -22,7 +22,8 @@ CREATE TABLE IF NOT EXISTS movies (
 CREATE TABLE IF NOT EXISTS links (
     movieId INT PRIMARY KEY,
     imdbId INT,
-    tmdbId INT
+    tmdbId INT,
+    FOREIGN KEY (movieId) REFERENCES movies(movieId) ON DELETE CASCADE
 );
 
 -- Create Ratings Table
@@ -31,7 +32,8 @@ CREATE TABLE IF NOT EXISTS ratings (
     userId INT,
     movieId INT,
     rating FLOAT,
-    timestamp VARCHAR(255)
+    timestamp VARCHAR(255),
+    FOREIGN KEY (movieId) REFERENCES movies(movieId) ON DELETE CASCADE
 );
 
 -- Create Tags Table
@@ -40,7 +42,8 @@ CREATE TABLE IF NOT EXISTS tags (
     userId INT,
     movieId INT,
     tag VARCHAR(255),
-    timestamp VARCHAR(255)
+    timestamp VARCHAR(255),
+    FOREIGN KEY (movieId) REFERENCES movies(movieId) ON DELETE CASCADE
 );
 
 -- Create Actors Table
@@ -59,14 +62,18 @@ CREATE TABLE IF NOT EXISTS directors (
 CREATE TABLE IF NOT EXISTS actorsMovies (
     uniqueId INT PRIMARY KEY,
     actorId VARCHAR(255),
-    movieId INT
+    movieId INT,
+    FOREIGN KEY (movieId) REFERENCES movies(movieId) ON DELETE CASCADE,
+    FOREIGN KEY (actorId) REFERENCES actors(actorId) ON DELETE CASCADE
 );
 
 -- Create DirectorsMovies Table
 CREATE TABLE IF NOT EXISTS directorsMovies (
     uniqueId INT PRIMARY KEY,
     directorId VARCHAR(255),
-    movieId INT
+    movieId INT,
+    FOREIGN KEY (movieId) REFERENCES movies(movieId) ON DELETE CASCADE,
+    FOREIGN KEY (directorId) REFERENCES directors(directorId) ON DELETE CASCADE
 );
 
 -- Create Personality Data Table
@@ -114,7 +121,9 @@ CREATE TABLE IF NOT EXISTS ratingsPersonality (
     userId VARCHAR(255),
     movieId INT NULL,
     rating FLOAT NULL,
-    timestamp VARCHAR(255)
+    timestamp VARCHAR(255),
+    FOREIGN KEY (movieId) REFERENCES movies(movieId) ON DELETE CASCADE
+
 );
 
 
@@ -124,7 +133,7 @@ CREATE TABLE IF NOT EXISTS users (
     surname VARCHAR(255),
     gender VARCHAR(255),
     age INT,
-    password INT
+    password VARCHAR(255)
 );
 
 CREATE TABLE IF NOT EXISTS lists (
@@ -139,7 +148,9 @@ CREATE TABLE IF NOT EXISTS list_movies (
     id INT AUTO_INCREMENT PRIMARY KEY,
     list_id INT,
     movie_id INT,
-    FOREIGN KEY (list_id) REFERENCES lists(id) ON DELETE CASCADE
+    FOREIGN KEY (list_id) REFERENCES lists(id) ON DELETE CASCADE,
+    FOREIGN KEY (movie_id) REFERENCES movies(movieId) ON DELETE CASCADE
+
 );
 
 -- Load Movies Data
@@ -222,6 +233,30 @@ IGNORE 1 ROWS;
 
 LOAD DATA INFILE '/var/lib/mysql-files/ratings_personality.csv'
 INTO TABLE ratingsPersonality
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+-- Load Links Data
+LOAD DATA INFILE '/var/lib/mysql-files/users.csv'
+INTO TABLE users
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+-- Load Links Data
+LOAD DATA INFILE '/var/lib/mysql-files/lists.csv'
+INTO TABLE lists
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+-- Load Links Data
+LOAD DATA INFILE '/var/lib/mysql-files/list_movies.csv'
+INTO TABLE list_movies
 FIELDS TERMINATED BY ',' 
 ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
