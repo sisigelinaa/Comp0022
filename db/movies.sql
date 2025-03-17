@@ -16,30 +16,30 @@ CREATE TABLE IF NOT EXISTS movies (
 
 -- Create Genres Table
 CREATE TABLE IF NOT EXISTS genres (
-    genreId INT PRIMARY KEY,
+    genreId INT AUTO_INCREMENT PRIMARY KEY,
     genreName VARCHAR(255) UNIQUE
 );
 
--- Create Movies-Genres Relationship Table
+-- Create Movies-Genres Relationship Table (With uniqueId)
 CREATE TABLE IF NOT EXISTS movies_genres (
+    uniqueId INT PRIMARY KEY AUTO_INCREMENT,
     movieId INT,
     genreId INT,
-    PRIMARY KEY (movieId, genreId),
     FOREIGN KEY (movieId) REFERENCES movies(movieId) ON DELETE CASCADE,
     FOREIGN KEY (genreId) REFERENCES genres(genreId) ON DELETE CASCADE
 );
 
 -- Create Languages Table
 CREATE TABLE IF NOT EXISTS languages (
-    languageId INT PRIMARY KEY,
+    languageId INT AUTO_INCREMENT PRIMARY KEY,
     languageName VARCHAR(255) UNIQUE
 );
 
--- Create Movies-Languages Relationship Table
+-- Create Movies-Languages Relationship Table (With uniqueId)
 CREATE TABLE IF NOT EXISTS movies_languages (
+    uniqueId INT PRIMARY KEY AUTO_INCREMENT,
     movieId INT,
     languageId INT,
-    PRIMARY KEY (movieId, languageId),
     FOREIGN KEY (movieId) REFERENCES movies(movieId) ON DELETE CASCADE,
     FOREIGN KEY (languageId) REFERENCES languages(languageId) ON DELETE CASCADE
 );
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS links (
 
 -- Create Ratings Table
 CREATE TABLE IF NOT EXISTS ratings (
-    uniqueId INT PRIMARY KEY AUTO_INCREMENT,
+    uniqueId INT PRIMARY KEY,
     userId INT,
     movieId INT,
     rating FLOAT,
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS ratings (
 
 -- Create Tags Table
 CREATE TABLE IF NOT EXISTS tags (
-    uniqueId INT PRIMARY KEY AUTO_INCREMENT,
+    uniqueId INT PRIMARY KEY,
     userId INT,
     movieId INT,
     tag VARCHAR(255),
@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS directors (
     directorName VARCHAR(255)
 );
 
--- Create Movies-Actors Relationship Table
+-- Create ActorsMovies Table
 CREATE TABLE IF NOT EXISTS actorsMovies (
     uniqueId INT PRIMARY KEY AUTO_INCREMENT,
     actorId VARCHAR(255),
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS actorsMovies (
     FOREIGN KEY (actorId) REFERENCES actors(actorId) ON DELETE CASCADE
 );
 
--- Create Movies-Directors Relationship Table
+-- Create DirectorsMovies Table
 CREATE TABLE IF NOT EXISTS directorsMovies (
     uniqueId INT PRIMARY KEY AUTO_INCREMENT,
     directorId VARCHAR(255),
@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS directorsMovies (
 
 -- Create Personality Data Table
 CREATE TABLE IF NOT EXISTS personalityData (
-    uniqueId INT PRIMARY KEY AUTO_INCREMENT,
+    uniqueId INT PRIMARY KEY,
     userId VARCHAR(255),
     openness FLOAT NULL,
     agreeableness FLOAT NULL,
@@ -143,7 +143,7 @@ CREATE TABLE IF NOT EXISTS personalityData (
 
 -- Create Ratings Personality Table
 CREATE TABLE IF NOT EXISTS ratingsPersonality (
-    uniqueId INT PRIMARY KEY AUTO_INCREMENT,
+    uniqueId INT PRIMARY KEY,
     userId VARCHAR(255),
     movieId INT NULL,
     rating FLOAT NULL,
@@ -202,12 +202,14 @@ ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
 
+-- Load Genres-Movies Relationship Data (With uniqueId)
 LOAD DATA INFILE '/var/lib/mysql-files/genres_movies.csv'
 INTO TABLE movies_genres
 FIELDS TERMINATED BY ',' 
 ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
-IGNORE 1 ROWS;
+IGNORE 1 ROWS
+(uniqueId, movieId, genreId);
 
 -- Load Languages Data
 LOAD DATA INFILE '/var/lib/mysql-files/languages.csv'
@@ -217,12 +219,14 @@ ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
 
+-- Load Languages-Movies Relationship Data (With uniqueId)
 LOAD DATA INFILE '/var/lib/mysql-files/languages_movies.csv'
 INTO TABLE movies_languages
 FIELDS TERMINATED BY ',' 
 ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
-IGNORE 1 ROWS;
+IGNORE 1 ROWS
+(uniqueId, movieId, languageId);
 
 -- Load Links Data
 LOAD DATA INFILE '/var/lib/mysql-files/links.csv'
