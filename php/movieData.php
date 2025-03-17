@@ -114,7 +114,7 @@ if (isset($_GET['back'])) {
                 <p class='card-text'><strong>Box Office: 💵</strong> {$formattedBoxOffice}</p>
                 <p class='card-text'><strong>Runtime:</strong> {$movie['runtime']}</p>
                 <p class='card-text'><strong>Language:</strong> {$movie['language']}</p>
-                <p class='card-text'><strong>Genre-Specific Dislike:</strong> " . ($isGenreSpecificDislike ? 'True' : 'False') . "</p>
+                <p class='card-text'><strong>Predicted that users disliked this movie because of its genre:</strong> " . ($isGenreSpecificDislike ? 'True' : 'False') . "</p>
             </div>
         </div>";
             } else {
