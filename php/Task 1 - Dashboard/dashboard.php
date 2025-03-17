@@ -20,14 +20,14 @@ if ($conn->connect_error) {
     <title>Movie Info Finder</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../styles.css">
 </head>
 
 <body class="text-light" style="background-color: #141414;">
     <div class="container mt-4">
         <div class="container mt-4">
             <div class="text-end">
-                <a href="logIn.php" class="btn btn-primary">Log In</a>
+                <a href="../Task 6 - Accounts/logIn.php" class="btn btn-primary">Log In</a>
             </div>
             <h1 class="text-center">🎬 Movie Finder</h1>
 
@@ -41,13 +41,13 @@ if ($conn->connect_error) {
             </div>
 
             <div class="text-center my-4">
-                <a href="audiencePatterns.php" class="btn btn-primary btn-sm">View Genre Correlations</a>
-                <a href="genreReport.php" class="btn btn-info btn-sm">View Genre Reports (Table)</a>
-                <a href="genreHistograms.php?type=popularity" class="btn btn-primary btn-sm">View Genre Popularity
+                <a href="../Task 3 - Analysis/audiencePatterns.php" class="btn btn-primary btn-sm">View Genre Correlations</a>
+                <a href="../Task 2 - Reports/genreReport.php" class="btn btn-info btn-sm">View Genre Reports (Table)</a>
+                <a href="../Task 2 - Reports/genreHistograms.php?type=popularity" class="btn btn-primary btn-sm">View Genre Popularity
                     Histogram</a>
-                <a href="genreHistograms.php?type=polarization" class="btn btn-warning btn-sm">View Genre Polarization
+                <a href="../Task 2 - Reports/genreHistograms.php?type=polarization" class="btn btn-warning btn-sm">View Genre Polarization
                     Histogram</a>
-                <a href="predict_rating.php" class="btn btn-info btn-sm px-3" style="background-color: #17a2b8; border-color: #17a2b8;">⭐ Predict Movie Rating</a>
+                <a href="../Task 4 - Prediction/predict_rating.php" class="btn btn-info btn-sm px-3" style="background-color: #17a2b8; border-color: #17a2b8;">⭐ Predict Movie Rating</a>
             </div>
 
             <form method="GET" class="my-4">
@@ -129,7 +129,7 @@ if ($conn->connect_error) {
                     $movieId = $row['movieId'];
 
                     echo "<div class='col'>
-                    <a href='movieData.php?movieId=$movieId' class='text-decoration-none'>
+                    <a href='../movieData.php?movieId=$movieId' class='text-decoration-none'>
                         <div class='card bg-dark movie-card h-100'>
                             <img src='$poster' class='card-img-top' alt='$title'>
                             <div class='card-body text-center'>

@@ -4,10 +4,10 @@ $loggedInUser = $_GET['username'] ?? $_SESSION['username'] ?? null;
 
 if (isset($_GET['back'])) {
     if ($loggedInUser) {
-        header("Location: accountPage.php?username=$loggedInUser");
+        header("Location: Task 6 - Accounts/accountPage.php?username=$loggedInUser");
         exit();
     } else {
-        header("Location: dashboard.php");
+        header("Location: Task 1 - Dashboard/dashboard.php");
         exit();
     }
 }
@@ -27,7 +27,7 @@ if (isset($_GET['back'])) {
 <body class="bg-dark text-light">
 
     <div class="container mt-3">
-        <a href="?back=true&username=<?php echo $loggedInUser; ?>" class="btn btn-light mb-3">⬅ Back to Search</a>
+        <a href="?back=true&username=<?php echo $loggedInUser; ?>" class="btn btn-light mb-3">← Back to Search</a>
 
         <?php
         $servername = "db";
@@ -114,7 +114,7 @@ if (isset($_GET['back'])) {
                 <p class='card-text'><strong>Box Office: 💵</strong> {$formattedBoxOffice}</p>
                 <p class='card-text'><strong>Runtime:</strong> {$movie['runtime']}</p>
                 <p class='card-text'><strong>Language:</strong> {$movie['language']}</p>
-                <p class='card-text'><strong>Genre-Specific Dislike:</strong> " . ($isGenreSpecificDislike ? 'True' : 'False') . "</p>
+                <p class='card-text'><strong>Predicted that users disliked this movie because of its genre:</strong> " . ($isGenreSpecificDislike ? 'True' : 'False') . "</p>
             </div>
         </div>";
             } else {
