@@ -50,9 +50,9 @@ $conn->close();
 // Determine sorting type
 $type = $_GET['type'] ?? 'popularity';
 if ($type === 'popularity') {
-    usort($report, fn($a, $b) => $b['count'] <=> $a['count']);
-    $chartTitle = "Genre Popularity (Movie Count)";
-    $dataPoints = array_map(fn($item) => $item['count'], $report);
+    usort($report, fn($a, $b) => $b['average'] <=> $a['average']);
+    $chartTitle = "Genre Popularity (Average IMDb Rating)";
+    $dataPoints = array_map(fn($item) => $item['average'], $report);
 } else {
     usort($report, fn($a, $b) => $b['stddev'] <=> $a['stddev']);
     $chartTitle = "Genre Polarization (Rating Std. Dev.)";
