@@ -18,9 +18,11 @@ services:
 
   python-api:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile.python
     container_name: python_api
+    volumes:
+      - ./csv:/app/csv
     ports:
       - "5001:5000"
     depends_on:

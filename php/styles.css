@@ -132,3 +132,32 @@ h1 {
     margin: auto;
     text-align: center;
 }
+
+/* Predict Rating Page Enhancements */
+h1 {
+    font-weight: bold;
+    text-shadow: 2px 2px 10px rgba(255, 204, 0, 0.5);
+    text-align: center;
+}
+
+form {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 30px;
+    border-radius: 10px;
+}
+
+.alert {
+    text-align: center;
+}
+
+pre {
+    border-radius: 10px;
+    font-size: 14px;
+    overflow-x: auto;
+}
+
+/* Back button */
+.btn-secondary {
+    font-size: 1rem;
+    padding: 10px 20px;
+}

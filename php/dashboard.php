@@ -47,6 +47,7 @@ if ($conn->connect_error) {
                     Histogram</a>
                 <a href="genreHistograms.php?type=polarization" class="btn btn-warning btn-sm">View Genre Polarization
                     Histogram</a>
+                <a href="predict_rating.php" class="btn btn-info btn-sm px-3" style="background-color: #17a2b8; border-color: #17a2b8;">⭐ Predict Movie Rating</a>
             </div>
 
             <form method="GET" class="my-4">
