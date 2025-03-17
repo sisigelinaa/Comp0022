@@ -16,13 +16,13 @@ CREATE TABLE IF NOT EXISTS movies (
 
 -- Create Genres Table
 CREATE TABLE IF NOT EXISTS genres (
-    genreId INT AUTO_INCREMENT PRIMARY KEY,
+    genreId INT PRIMARY KEY,
     genreName VARCHAR(255) UNIQUE
 );
 
--- Create Movies-Genres Relationship Table (With uniqueId)
+-- Create Movies-Genres Relationship Table
 CREATE TABLE IF NOT EXISTS movies_genres (
-    uniqueId INT PRIMARY KEY AUTO_INCREMENT,
+    uniqueId INT PRIMARY KEY,
     movieId INT,
     genreId INT,
     FOREIGN KEY (movieId) REFERENCES movies(movieId) ON DELETE CASCADE,
@@ -31,13 +31,13 @@ CREATE TABLE IF NOT EXISTS movies_genres (
 
 -- Create Languages Table
 CREATE TABLE IF NOT EXISTS languages (
-    languageId INT AUTO_INCREMENT PRIMARY KEY,
+    languageId INT PRIMARY KEY,
     languageName VARCHAR(255) UNIQUE
 );
 
--- Create Movies-Languages Relationship Table (With uniqueId)
+-- Create Movies-Languages Relationship Table
 CREATE TABLE IF NOT EXISTS movies_languages (
-    uniqueId INT PRIMARY KEY AUTO_INCREMENT,
+    uniqueId INT PRIMARY KEY,
     movieId INT,
     languageId INT,
     FOREIGN KEY (movieId) REFERENCES movies(movieId) ON DELETE CASCADE,
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS directors (
 
 -- Create ActorsMovies Table
 CREATE TABLE IF NOT EXISTS actorsMovies (
-    uniqueId INT PRIMARY KEY AUTO_INCREMENT,
+    uniqueId INT PRIMARY KEY,
     actorId VARCHAR(255),
     movieId INT,
     FOREIGN KEY (movieId) REFERENCES movies(movieId) ON DELETE CASCADE,
@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS actorsMovies (
 
 -- Create DirectorsMovies Table
 CREATE TABLE IF NOT EXISTS directorsMovies (
-    uniqueId INT PRIMARY KEY AUTO_INCREMENT,
+    uniqueId INT PRIMARY KEY,
     directorId VARCHAR(255),
     movieId INT,
     FOREIGN KEY (movieId) REFERENCES movies(movieId) ON DELETE CASCADE,
@@ -202,7 +202,7 @@ ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
 
--- Load Genres-Movies Relationship Data (With uniqueId)
+-- Load Movies-Genres Relationship Data
 LOAD DATA INFILE '/var/lib/mysql-files/genres_movies.csv'
 INTO TABLE movies_genres
 FIELDS TERMINATED BY ',' 
@@ -219,7 +219,7 @@ ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
 
--- Load Languages-Movies Relationship Data (With uniqueId)
+-- Load Movies-Languages Relationship Data
 LOAD DATA INFILE '/var/lib/mysql-files/languages_movies.csv'
 INTO TABLE movies_languages
 FIELDS TERMINATED BY ',' 
@@ -268,9 +268,57 @@ ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
 
+-- Load ActorsMovies Data
+LOAD DATA INFILE '/var/lib/mysql-files/actors_movies.csv'
+INTO TABLE actorsMovies
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+-- Load DirectorsMovies Data
+LOAD DATA INFILE '/var/lib/mysql-files/directors_movies.csv'
+INTO TABLE directorsMovies
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+-- Load Personality Data
+LOAD DATA INFILE '/var/lib/mysql-files/personality_data.csv'
+INTO TABLE personalityData
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+-- Load RatingsPersonality Data
+LOAD DATA INFILE '/var/lib/mysql-files/ratings_personality.csv'
+INTO TABLE ratingsPersonality
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
 -- Load Users Data
 LOAD DATA INFILE '/var/lib/mysql-files/users.csv'
 INTO TABLE users
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+-- Load Lists Data
+LOAD DATA INFILE '/var/lib/mysql-files/lists.csv'
+INTO TABLE lists
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+-- Load ListsMovies Data
+LOAD DATA INFILE '/var/lib/mysql-files/list_movies.csv'
+INTO TABLE list_movies
 FIELDS TERMINATED BY ',' 
 ENCLOSED BY '"'
 LINES TERMINATED BY '\n'

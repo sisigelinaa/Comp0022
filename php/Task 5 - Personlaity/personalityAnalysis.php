@@ -23,19 +23,20 @@
 
         // Get user averages per genre using SQL
         $query = "SELECT r.userId, 
-                    g.genreName AS genre,
-                    AVG(r.rating) AS avg_rating
-                FROM ratings r
-                JOIN movies_genres mg ON r.movieId = mg.movieId
-                JOIN genres g ON mg.genreId = g.genreId
-                GROUP BY r.userId, g.genreName;";
+                SUBSTRING_INDEX(SUBSTRING_INDEX(m.genres, '|', n.n), '|', -1) AS genre,
+                AVG(r.rating) AS avg_rating
+              FROM ratings r
+              JOIN movies m ON r.movieId = m.movieId
+              JOIN (SELECT 1 n UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 
+                UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) n
+                ON CHAR_LENGTH(m.genres) - CHAR_LENGTH(REPLACE(m.genres, '|', '')) >= n.n - 1
+              GROUP BY r.userId, genre";
 
         $result = $conn->query($query);
 
         // Process results into array
         $genreRatings = [];
         while ($row = $result->fetch_assoc()) {
-            var_dump($row);
             $genreRatings[$row['genre']][$row['userId']] = (float) $row['avg_rating'];
         }
 
