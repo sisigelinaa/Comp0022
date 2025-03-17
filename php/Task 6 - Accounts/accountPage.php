@@ -51,7 +51,7 @@ if (isset($_GET['delete_list'])) {
     $list_id = intval($_GET['delete_list']);
     $conn->query("DELETE FROM lists WHERE id = '$list_id'");
     $conn->query("DELETE FROM list_movies WHERE list_id = '$list_id'");
-    header("Location: accountPage.php");
+    header("Location: ../Task 6 - Accounts/accountPage.php");
     exit();
 }
 
@@ -67,7 +67,7 @@ $lists = $conn->query("SELECT * FROM lists WHERE username = '$loggedInUser'");
     <title>Dashboard - Festival Movie Planner</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../styles.css">
 </head>
 
 <body class="text-light" style="background-color: #141414;">
@@ -175,7 +175,7 @@ $lists = $conn->query("SELECT * FROM lists WHERE username = '$loggedInUser'");
                                         <div class="row">
                                             <?php foreach ($movies as $movie): ?>
                                                 <div class="col-4 text-center">
-                                                    <a href="movieData.php?id=<?= $movie['movieId'] ?>"
+                                                    <a href="../movieData.php?id=<?= $movie['movieId'] ?>"
                                                         class="text-decoration-none">
                                                         <img src="<?= $movie['posterUrl'] ?>"
                                                             alt="<?= htmlspecialchars($movie['title']) ?>"
@@ -292,7 +292,7 @@ if ($result->num_rows > 0) {
 
         echo "
                 <div class='col'>
-                 <a href='movieData.php?movieId=$movieId' class='text-decoration-none'>
+                 <a href='../movieData.php?movieId=$movieId' class='text-decoration-none'>
                     <div class='card bg-dark movie-card h-100 d-flex flex-column'>
                         <img src='$poster' class='card-img-top' alt='$title'>
                         <div class='card-body text-center d-flex flex-column flex-grow-1'>

@@ -74,11 +74,9 @@ $labels = array_map(fn($item) => $item['genre'], $report);
 
 <body class="bg-dark text-light">
     <div class="container mt-4">
+        <a href="../Task 1 - Dashboard/dashboard.php" class="btn btn-light mb-3">← Back to Search</a>
         <h1 class="text-center mb-4"><?php echo $chartTitle; ?></h1>
         <canvas id="genreChart"></canvas>
-        <div class="text-center mt-4">
-            <a href="dashboard.php" class="btn btn-warning">Back to Movie Finder</a>
-        </div>
     </div>
     <script>
         var ctx = document.getElementById('genreChart').getContext('2d');

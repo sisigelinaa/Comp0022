@@ -58,53 +58,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Predict Movie Rating</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../styles.css">
     <style>
-        .form-container {
-            background-color: #1c1c1c;
-            padding: 20px;
-            border-radius: 10px;
-            max-width: 900px;
-            margin: auto;
-        }
         .form-control {
             min-width: 180px;
             max-width: 220px;
         }
-        .btn-warning {
-            min-width: 120px;
-            font-weight: bold;
-        }
-        .info-text {
-            font-size: 0.85rem;
-            color: #bbb;
-            font-style: italic;
-        }
-        .prediction-link {
-            color: #ffcc00;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .prediction-link:hover {
-            text-decoration: underline;
-        }
-        .runtime-label {
-            font-size: 0.85rem;
-            color: #bbb;
-        }
+
     </style>
+    
 </head>
 <body class="text-light" style="background-color: #141414;">
     <div class="container mt-4">
 
-        <!-- Back Button at the Top -->
         <div class="text-start mb-3">
-            <a href="dashboard.php" class="btn btn-outline-light">← Back to Dashboard</a>
+            <a href="../Task 1 - Dashboard/dashboard.php" class="btn btn-outline-light">← Back to Dashboard</a>
         </div>
 
         <h2 class="text-warning text-center">⭐ Predict Movie Rating</h2>
 
-        <!-- Prediction Form -->
         <form method="POST" class="form-container">
             <div class="row justify-content-center">
                 <div class="col-md-3">
@@ -139,11 +111,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </div>
         </form>
 
-        <!-- Display Predictions -->
         <?php if ($result): ?>
         <div class="d-flex justify-content-center mt-4">
             <div class="card bg-dark text-light p-4 text-center" style="min-width: 400px; max-width: 550px;">
-                <!-- Display user input information -->
                 <p class="text-light"><strong>Predicting Rating for:</strong></p>
                 <p class="mb-1"><strong>Movie ID:</strong> <?= htmlspecialchars($movie_id) ?></p>
                 <p class="mb-1"><strong>Genres:</strong> <?= htmlspecialchars($genres) ?></p>

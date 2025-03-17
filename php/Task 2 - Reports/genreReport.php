@@ -49,7 +49,8 @@ foreach ($genreData as $genre => $ratings) {
 
 // Sort data for table display
 usort($report, function ($a, $b) {
-    return $b['count'] <=> $a['count']; });
+    return $b['count'] <=> $a['count'];
+});
 
 $conn->close();
 ?>
@@ -66,8 +67,8 @@ $conn->close();
 
 <body class="bg-dark text-light">
     <div class="container mt-4">
+        <a href="../Task 1 - Dashboard/dashboard.php" class="btn btn-light mb-3">← Back to Search</a>
         <h1 class="text-center mb-4">Genre Reports (Table)</h1>
-
         <h2>Popularity Report</h2>
         <table class="table table-dark table-striped">
             <thead>
@@ -105,10 +106,6 @@ $conn->close();
                 <?php endforeach; ?>
             </tbody>
         </table>
-
-        <div class="text-center mt-4">
-            <a href="dashboard.php" class="btn btn-warning">Back to Movie Finder</a>
-        </div>
     </div>
 </body>
 

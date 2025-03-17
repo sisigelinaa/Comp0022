@@ -38,7 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Login - Festival Movie Planner</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../styles.css">
     <style>
         body {
             background: rgba(0, 0, 0, 0.8);
@@ -88,7 +88,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </form>
 
         <div class="text-center mt-3 small-btns">
-            <a href="dashboard.php" class="btn btn-outline-light btn-sm"
+            <a href="../Task 1 - Dashboard/dashboard.php" class="btn btn-outline-light btn-sm"
                 style="background-color: rgb(192, 177, 119);">Browse as Guest</a>
             <a href="register.php" class="btn btn-success btn-sm">Register</a>
         </div>

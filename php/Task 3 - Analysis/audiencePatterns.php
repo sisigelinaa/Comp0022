@@ -12,8 +12,9 @@
 <body class="bg-dark text-light">
 
     <div class="container mt-4">
+        <a href="../Task 1 - Dashboard/dashboard.php" class="btn btn-light mb-3">← Back to Search</a>
+
         <?php
-        // ================== MySQL DATA PROCESSING ==================
         $conn = new mysqli("db", "user", "password", "movielens");
 
         if ($conn->connect_error) {
@@ -53,7 +54,7 @@
             );
             // Filter users with ratings <= 2 in genreA
             $usersALow = array_filter(
-                $genreRatings[$genreA], 
+                $genreRatings[$genreA],
                 fn($rating) => $rating <= 2
             );
 
@@ -131,14 +132,8 @@
         $conn->close();
         ?>
 
-        <!-- ================== VISUALIZATION ================== -->
         <h1 class="text-center">🎬 Genre Correlations</h1>
 
-        <div class="text-center my-4">
-            <a href="dashboard.php" class="btn btn-primary">Back to Dashboard</a>
-        </div>
-
-        <!--  High chart  -->
 
         <div class="card bg-secondary text-light mb-4">
             <div class="card-body text-center">
