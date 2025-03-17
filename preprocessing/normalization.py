@@ -2,7 +2,7 @@ import pandas as pd
 import os
 
 # Load movies dataset
-movies_file = r"/Users/peterpetrov/Downloads/Comp0022/csv/movies.csv"
+movies_file = r"../csv/movies.csv"
 movies = pd.read_csv(movies_file)
 
 # Ensure output directory exists
@@ -41,7 +41,7 @@ if "genres" in movies.columns:
     genres_movies.insert(0, 'uniqueId', genres_movies.index + 1)  # Add uniqueId
 
     # Save files (with genreId first)
-    unique_genres = unique_genres[['genreId', 'genres']]
+    unique_genres = unique_genres[['genreId', 'genreName']]
     unique_genres.to_csv(os.path.join(output_dir, "genres.csv"), index=False)
     genres_movies.to_csv(os.path.join(output_dir, "genres_movies.csv"), index=False)
     movies.drop(columns=['genres'], inplace=True)
@@ -61,7 +61,7 @@ if "language" in movies.columns:
     languages_movies.insert(0, 'uniqueId', languages_movies.index + 1)  # Add uniqueId
 
     # Save files (with languageId first)
-    unique_languages = unique_languages[['languageId', 'language']]
+    unique_languages = unique_languages[['languageId', 'languageName']]
     unique_languages.to_csv(os.path.join(output_dir, "languages.csv"), index=False)
     languages_movies.to_csv(os.path.join(output_dir, "languages_movies.csv"), index=False)
     movies.drop(columns=['language'], inplace=True)

@@ -1,4 +1,4 @@
-languageId,language
+languageId,languageName
 1,English
 2,French
 3,Italian
@@ -102,13 +102,13 @@ languageId,language
 101,Washoe
 102,Sanskrit
 103,Guarani
-104,"Norse, Old"
+104,Old Norse
 105,Aramaic
 106,Romany
 107,Slovenian
 108,Shuar
 109,Crow
-110,"Greek, Ancient (to 1453)"
+110,Ancient Greek (to 1453)
 111,Tamil
 112,Papiamento
 113,Mandingo

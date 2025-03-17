@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS movies (
 -- Create Genres Table
 CREATE TABLE IF NOT EXISTS genres (
     genreId INT PRIMARY KEY,
-    genreName VARCHAR(255) UNIQUE
+    genreName VARCHAR(255)
 );
 
 -- Create Movies-Genres Relationship Table
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS movies_genres (
 -- Create Languages Table
 CREATE TABLE IF NOT EXISTS languages (
     languageId INT PRIMARY KEY,
-    languageName VARCHAR(255) UNIQUE
+    languageName VARCHAR(255)
 );
 
 -- Create Movies-Languages Relationship Table
@@ -208,8 +208,7 @@ INTO TABLE movies_genres
 FIELDS TERMINATED BY ',' 
 ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
-IGNORE 1 ROWS
-(uniqueId, movieId, genreId);
+IGNORE 1 ROWS;
 
 -- Load Languages Data
 LOAD DATA INFILE '/var/lib/mysql-files/languages.csv'
@@ -225,8 +224,7 @@ INTO TABLE movies_languages
 FIELDS TERMINATED BY ',' 
 ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
-IGNORE 1 ROWS
-(uniqueId, movieId, languageId);
+IGNORE 1 ROWS;
 
 -- Load Links Data
 LOAD DATA INFILE '/var/lib/mysql-files/links.csv'
