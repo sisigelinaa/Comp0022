@@ -31,23 +31,34 @@ if ($conn->connect_error) {
             </div>
             <h1 class="text-center">🎬 Movie Finder</h1>
 
-            <div class="text-center my-3 genre-bar">
+            <div class="text-center my-3 d-flex flex-wrap justify-content-center gap-2">
                 <?php
-                $genres = ["Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance", "Thriller", "Crime", "Mystery", "Musical"];
-                foreach ($genres as $genre) {
-                    echo "<a href='?genre=$genre' class='btn btn-danger'>$genre</a>";
+                $sqlGenres = "SELECT genreName FROM genres WHERE genreId != 20 ORDER BY genreName ASC";
+                $resultGenres = $conn->query($sqlGenres);
+
+                if ($resultGenres && $resultGenres->num_rows > 0) {
+                    while ($row = $resultGenres->fetch_assoc()) {
+                        $genre = htmlspecialchars($row['genreName']);
+                        echo "<a href='?genre=$genre' class='btn btn-danger'>$genre</a> ";
+                    }
+                } else {
+                    echo "No genres found.";
                 }
                 ?>
             </div>
 
             <div class="text-center my-4">
-                <a href="../Task 3 - Analysis/audiencePatterns.php" class="btn btn-primary btn-sm">View Genre Correlations</a>
+                <a href="../Task 3 - Analysis/audiencePatterns.php" class="btn btn-primary btn-sm">View Genre
+                    Correlations</a>
                 <a href="../Task 2 - Reports/genreReport.php" class="btn btn-info btn-sm">View Genre Reports (Table)</a>
-                <a href="../Task 2 - Reports/genreHistograms.php?type=popularity" class="btn btn-primary btn-sm">View Genre Popularity
+                <a href="../Task 2 - Reports/genreHistograms.php?type=popularity" class="btn btn-primary btn-sm">View
+                    Genre Popularity
                     Histogram</a>
-                <a href="../Task 2 - Reports/genreHistograms.php?type=polarization" class="btn btn-warning btn-sm">View Genre Polarization
+                <a href="../Task 2 - Reports/genreHistograms.php?type=polarization" class="btn btn-warning btn-sm">View
+                    Genre Polarization
                     Histogram</a>
-                <a href="../Task 4 - Prediction/predict_rating.php" class="btn btn-info btn-sm px-3" style="background-color: #17a2b8; border-color: #17a2b8;">⭐ Predict Movie Rating</a>
+                <a href="../Task 4 - Prediction/predict_rating.php" class="btn btn-info btn-sm px-3"
+                    style="background-color: #17a2b8; border-color: #17a2b8;">⭐ Predict Movie Rating</a>
             </div>
 
             <form method="GET" class="my-4">
@@ -83,40 +94,40 @@ if ($conn->connect_error) {
 
 
             <?php
-            $sql = "SELECT * FROM movies WHERE 1=1";
+            $sql = "SELECT m.* FROM movies m WHERE 1=1";
 
             if (!empty($_GET['movie'])) {
                 $movie = $conn->real_escape_string($_GET['movie']);
-                $sql .= " AND title LIKE '%$movie%'";
+                $sql .= " AND m.title LIKE '%$movie%'";
             }
-
+            
             if (!empty($_GET['genre'])) {
                 $genre = $conn->real_escape_string($_GET['genre']);
-                $sql .= " AND genres LIKE '%$genre%'";
+                $sql .= " AND EXISTS (SELECT 1 FROM movies_genres mg JOIN genres g ON mg.genreId = g.genreId WHERE mg.movieId = m.movieId AND g.genreName LIKE '%$genre%')";
             }
-
+            
             if (!empty($_GET['actor'])) {
                 $actor = $conn->real_escape_string($_GET['actor']);
-                $sql .= " AND actors LIKE '%$actor%'";
+                $sql .= " AND EXISTS (SELECT 1 FROM actorsMovies am JOIN actors a ON am.actorId = a.actorId WHERE am.movieId = m.movieId AND a.actorName LIKE '%$actor%')";
             }
-
+            
             if (!empty($_GET['year_from'])) {
                 $yearFrom = intval($_GET['year_from']);
-                $sql .= " AND year >= $yearFrom";
+                $sql .= " AND m.year >= $yearFrom";
             }
-
+            
             if (!empty($_GET['year_to'])) {
                 $yearTo = intval($_GET['year_to']);
-                $sql .= " AND year <= $yearTo";
+                $sql .= " AND m.year <= $yearTo";
             }
-
+            
             if (!empty($_GET['rating'])) {
                 $rating = floatval($_GET['rating']);
-                $sql .= " AND imdbRating >= $rating";
+                $sql .= " AND m.imdbRating >= $rating";
             }
-
+            
             $result = $conn->query($sql);
-
+            
             if ($result->num_rows > 0) {
                 echo "<div class='row row-cols-2 row-cols-md-3 row-cols-lg-6 g-2'>";
                 while ($row = $result->fetch_assoc()) {
@@ -124,23 +135,37 @@ if ($conn->connect_error) {
                     $year = htmlspecialchars($row['year']);
                     $poster = !empty($row['posterUrl']) ? $row['posterUrl'] : "no-image.png";
                     $rating = htmlspecialchars($row['imdbRating']);
-                    $genre = htmlspecialchars($row['genres']);
-                    $actors = htmlspecialchars($row['actors']);
                     $movieId = $row['movieId'];
-
+            
+                    $genreQuery = "SELECT GROUP_CONCAT(g.genreName SEPARATOR ', ') AS genres 
+                                   FROM movies_genres mg 
+                                   JOIN genres g ON mg.genreId = g.genreId 
+                                   WHERE mg.movieId = $movieId";
+                    $genreResult = $conn->query($genreQuery);
+                    $genreRow = $genreResult->fetch_assoc();
+                    $genre = htmlspecialchars($genreRow['genres']);
+            
+                    $actorQuery = "SELECT GROUP_CONCAT(a.actorName SEPARATOR ', ') AS actors 
+                                   FROM actorsMovies am 
+                                   JOIN actors a ON am.actorId = a.actorId 
+                                   WHERE am.movieId = $movieId";
+                    $actorResult = $conn->query($actorQuery);
+                    $actorRow = $actorResult->fetch_assoc();
+                    $actors = htmlspecialchars($actorRow['actors']);
+            
                     echo "<div class='col'>
-                    <a href='../movieData.php?movieId=$movieId' class='text-decoration-none'>
-                        <div class='card bg-dark movie-card h-100'>
-                            <img src='$poster' class='card-img-top' alt='$title'>
-                            <div class='card-body text-center'>
-                                <h6 class='text-light'>$title</h6>
-                                <p class='text-light'>⭐ $rating</p>
-                                <p class='text-light'>$genre</p>
-                                <p class='text-light'><strong>Actors:</strong> $actors</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>";
+                            <a href='../movieData.php?movieId=$movieId' class='text-decoration-none'>
+                                <div class='card bg-dark movie-card h-100'>
+                                    <img src='$poster' class='card-img-top' alt='$title'>
+                                    <div class='card-body text-center'>
+                                        <h6 class='text-light'>$title</h6>
+                                        <p class='text-light'>⭐ $rating</p>
+                                        <p class='text-light'><strong>Genre: </strong>$genre</p>
+                                        <p class='text-light'><strong>Actors:</strong> $actors</p>
+                                    </div>
+                                </div>
+                            </a>
+                          </div>";
                 }
                 echo "</div>";
             } else {

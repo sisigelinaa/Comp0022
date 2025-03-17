@@ -47,86 +47,123 @@ if (isset($_GET['back'])) {
             $sql = "SELECT * FROM movies WHERE movieId = '$movieId'";
             $result = $conn->query($sql);
 
-
-
             if ($result->num_rows > 0) {
                 $movie = $result->fetch_assoc();
                 $boxOffice = isset($movie['boxOffice']) ? preg_replace('/[^0-9]/', '', $movie['boxOffice']) : 0;
                 $formattedBoxOffice = $boxOffice ? "$" . number_format((int) $boxOffice, 0, '.', ',') : "N/A";
 
-                // part of TASK 3
-                // get users who disliked this movie
+                $sqlGenres = "
+            SELECT g.genreName 
+            FROM movies_genres mg
+            JOIN genres g ON mg.genreId = g.genreId
+            WHERE mg.movieId = '$movieId'
+        ";
+                $resultGenres = $conn->query($sqlGenres);
+                $genres = [];
+                while ($row = $resultGenres->fetch_assoc()) {
+                    $genres[] = $row['genreName'];
+                }
+                $genresString = implode(', ', $genres);
+
+                $sqlActors = "
+            SELECT a.actorName 
+            FROM actorsMovies am
+            JOIN actors a ON am.actorId = a.actorId
+            WHERE am.movieId = '$movieId'
+        ";
+                $resultActors = $conn->query($sqlActors);
+                $actors = [];
+                while ($row = $resultActors->fetch_assoc()) {
+                    $actors[] = $row['actorName'];
+                }
+                $actorsString = implode(', ', $actors);
+
+                $sqlDirectors = "
+            SELECT d.directorName 
+            FROM directorsMovies dm
+            JOIN directors d ON dm.directorId = d.directorId
+            WHERE dm.movieId = '$movieId'
+        ";
+                $resultDirectors = $conn->query($sqlDirectors);
+                $directors = [];
+                while ($row = $resultDirectors->fetch_assoc()) {
+                    $directors[] = $row['directorName'];
+                }
+                $directorsString = implode(', ', $directors);
+
+                $sqlLanguages = "
+            SELECT l.languageName 
+            FROM movies_languages ml
+            JOIN languages l ON ml.languageId = l.languageId
+            WHERE ml.movieId = '$movieId'
+        ";
+                $resultLanguages = $conn->query($sqlLanguages);
+                $languages = [];
+                while ($row = $resultLanguages->fetch_assoc()) {
+                    $languages[] = $row['languageName'];
+                }
+                $languagesString = implode(', ', $languages);
+
+                // Part of TASK 3: Get users who disliked this movie
                 $sqlDislikedUsers = "
-                SELECT userId 
-                FROM ratings 
-                WHERE movieId = '$movieId' AND rating <= 2
-                ";
+            SELECT userId 
+            FROM ratings 
+            WHERE movieId = '$movieId' AND rating <= 2
+        ";
                 $resultDislikedUsers = $conn->query($sqlDislikedUsers);
 
                 if ($resultDislikedUsers->num_rows > 0) {
-                    // make into list
+                    // Make into list
                     $dislikedUsers = [];
                     while ($row = $resultDislikedUsers->fetch_assoc()) {
                         $dislikedUsers[] = $row['userId'];
                     }
 
-                    // get the genres of current movie
-                    $sqlMovieGenres = "
-                        SELECT g.genreName 
-                        FROM movies_genres mg
-                        JOIN genres g ON mg.genreId = g.genreId
-                        WHERE mg.movieId = '$movieId'
-                    ";
-                    $resultMovieGenres = $conn->query($sqlMovieGenres);
-                    $movieGenres = [];
-                    while ($row = $resultMovieGenres->fetch_assoc()) {
-                        $movieGenres[] = $row['genreName'];
-                    }
-
-                    // count how many times these users also disliked other movies in any of the same genres
+                    // Count how many times these users also disliked other movies in any of the same genres
                     $sqlSameGenreDislikes = "
-                        SELECT COUNT(*) AS sameGenreDislikes
-                        FROM ratings r
-                        JOIN movies_genres mg ON r.movieId = mg.movieId
-                        JOIN genres g ON mg.genreId = g.genreId
-                        WHERE r.userId IN (" . implode(',', $dislikedUsers) . ")
-                        AND g.genreName IN ('" . implode("','", $movieGenres) . "')
-                        AND r.rating <= 2
-                        AND r.movieId != '$movieId'
-                    ";
+                SELECT COUNT(*) AS sameGenreDislikes
+                FROM ratings r
+                JOIN movies_genres mg ON r.movieId = mg.movieId
+                JOIN genres g ON mg.genreId = g.genreId
+                WHERE r.userId IN (" . implode(',', $dislikedUsers) . ")
+                AND g.genreName IN ('" . implode("','", $genres) . "')
+                AND r.rating <= 2
+                AND r.movieId != '$movieId'
+            ";
                     $resultSameGenreDislikes = $conn->query($sqlSameGenreDislikes);
                     $sameGenreDislikes = $resultSameGenreDislikes->fetch_assoc()['sameGenreDislikes'];
 
-                    // count how many times these users disliked other movies in different genres
+                    // Count how many times these users disliked other movies in different genres
                     $sqlOtherGenreDislikes = "
-                        SELECT COUNT(*) AS otherGenreDislikes
-                        FROM ratings r
-                        JOIN movies_genres mg ON r.movieId = mg.movieId
-                        JOIN genres g ON mg.genreId = g.genreId
-                        WHERE r.userId IN (" . implode(',', $dislikedUsers) . ")
-                        AND g.genreName NOT IN ('" . implode("','", $movieGenres) . "')
-                        AND r.rating <= 2
-                    ";
+                SELECT COUNT(*) AS otherGenreDislikes
+                FROM ratings r
+                JOIN movies_genres mg ON r.movieId = mg.movieId
+                JOIN genres g ON mg.genreId = g.genreId
+                WHERE r.userId IN (" . implode(',', $dislikedUsers) . ")
+                AND g.genreName NOT IN ('" . implode("','", $genres) . "')
+                AND r.rating <= 2
+            ";
                     $resultOtherGenreDislikes = $conn->query($sqlOtherGenreDislikes);
                     $otherGenreDislikes = $resultOtherGenreDislikes->fetch_assoc()['otherGenreDislikes'];
 
-                    // find out if users disliked this movie because of its genre using counts
+                    // Find out if users disliked this movie because of its genre using counts
                     $isGenreSpecificDislike = ($sameGenreDislikes > $otherGenreDislikes);
                 } else {
-                    $isGenreSpecificDislike = false; // no users disliked the movie
+                    $isGenreSpecificDislike = false; // No users disliked the movie
                 }
 
+                // Display movie details
                 echo "<div class='card mx-auto' style='max-width: 400px; margin-bottom:20px;'>
-            <img src='{$movie['posterUrl']}' class='card-img-top' style ='max-height: 200px; max-width: 150px;' alt='{$movie['title']}'>
+            <img src='{$movie['posterUrl']}' class='card-img-top' style='max-height: 200px; max-width: 150px;' alt='{$movie['title']}'>
             <div class='card-body'>
                 <h2 class='card-title'>{$movie['title']}</h2>
                 <p class='card-text'><strong>IMDB Rating:</strong> ⭐ {$movie['imdbRating']}</p>
-                <p class='card-text'><strong>Genre:</strong> {$movie['genres']}</p>
-                <p class='card-text'><strong>Director:</strong> {$movie['directors']}</p>
-                <p class='card-text'><strong>Actors:</strong> {$movie['actors']}</p>
-                <p class='card-text'><strong>Box Office: 💵</strong> {$formattedBoxOffice}</p>
+                <p class='card-text'><strong>Genre:</strong> $genresString</p>
+                <p class='card-text'><strong>Director:</strong> $directorsString</p>
+                <p class='card-text'><strong>Actors:</strong> $actorsString</p>
+                <p class='card-text'><strong>Box Office: 💵</strong> $formattedBoxOffice</p>
                 <p class='card-text'><strong>Runtime:</strong> {$movie['runtime']}</p>
-                <p class='card-text'><strong>Language:</strong> {$movie['language']}</p>
+                <p class='card-text'><strong>Language:</strong> $languagesString</p>
                 <p class='card-text'><strong>Predicted that users disliked this movie because of its genre:</strong> " . ($isGenreSpecificDislike ? 'True' : 'False') . "</p>
             </div>
         </div>";
