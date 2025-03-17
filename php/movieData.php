@@ -61,7 +61,7 @@ if (isset($_GET['back'])) {
                 $resultGenres = $conn->query($sqlGenres);
                 $genres = [];
                 while ($row = $resultGenres->fetch_assoc()) {
-                    $genres[] = $row['genreName'];
+                    $genres[] = trim($row['genreName']);
                 }
                 $genresString = implode(', ', $genres);
 
@@ -74,7 +74,7 @@ if (isset($_GET['back'])) {
                 $resultActors = $conn->query($sqlActors);
                 $actors = [];
                 while ($row = $resultActors->fetch_assoc()) {
-                    $actors[] = $row['actorName'];
+                    $actors[] = trim($row['actorName']);
                 }
                 $actorsString = implode(', ', $actors);
 
@@ -87,7 +87,7 @@ if (isset($_GET['back'])) {
                 $resultDirectors = $conn->query($sqlDirectors);
                 $directors = [];
                 while ($row = $resultDirectors->fetch_assoc()) {
-                    $directors[] = $row['directorName'];
+                    $directors[] = trim($row['directorName']);
                 }
                 $directorsString = implode(', ', $directors);
 
@@ -100,10 +100,11 @@ if (isset($_GET['back'])) {
                 $resultLanguages = $conn->query($sqlLanguages);
                 $languages = [];
                 while ($row = $resultLanguages->fetch_assoc()) {
-                    $languages[] = $row['languageName'];
+                    $languages[] = trim($row['languageName']);
                 }
                 $languagesString = implode(', ', $languages);
 
+                
                 // Part of TASK 3: Get users who disliked this movie
                 $sqlDislikedUsers = "
             SELECT userId 

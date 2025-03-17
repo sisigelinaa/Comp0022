@@ -26,17 +26,18 @@
                     g.genreName AS genre,
                     AVG(r.rating) AS avg_rating
                 FROM ratings r
-                JOIN movies_genres mg ON r.movieId = mg.movieId
+                JOIN movies m ON r.movieId = m.movieId
+                JOIN movies_genres mg ON m.movieId = mg.movieId
                 JOIN genres g ON mg.genreId = g.genreId
-                GROUP BY r.userId, g.genreName;";
+                GROUP BY r.userId, genre";
 
         $result = $conn->query($query);
 
         // Process results into array
         $genreRatings = [];
         while ($row = $result->fetch_assoc()) {
-            var_dump($row);
-            $genreRatings[$row['genre']][$row['userId']] = (float) $row['avg_rating'];
+            $genre = trim($row['genre']);  // Trim whitespace from genre name
+            $genreRatings[$genre][$row['userId']] = (float) $row['avg_rating'];
         }
 
         // Get unique genres and prepare results
