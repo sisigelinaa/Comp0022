@@ -150,24 +150,32 @@ $lists = $conn->query("SELECT * FROM lists WHERE username = '$loggedInUser'");
 
                                     <?php
                                     $list_id = $list['id'];
-                                    $moviesQuery = $conn->query("SELECT m.movieId, m.title, m.posterUrl, m.genres 
+                                    $moviesByGenre = [];
+
+                                    $moviesQuery = $conn->query("
+                                    SELECT m.movieId, m.title, m.posterUrl, g.genreName 
                                     FROM movies m
                                     INNER JOIN list_movies lm ON m.movieId = lm.movie_id
+                                    LEFT JOIN movies_genres mg ON m.movieId = mg.movieId
+                                    LEFT JOIN genres g ON mg.genreId = g.genreId
                                     WHERE lm.list_id = '$list_id'
-                                    ORDER BY m.genres ASC");
-
-                                    $moviesByGenre = [];
-                                    while ($movie = $moviesQuery->fetch_assoc()) {
-                                        $genres = explode('|', $movie['genres']);
-                                        foreach ($genres as $genre) {
-                                            $genre = trim($genre);
+                                    ORDER BY g.genreName ASC
+                                ");
+                                    
+                                    if ($moviesQuery->num_rows > 0) {
+                                        while ($movie = $moviesQuery->fetch_assoc()) {
+                                            $genre = $movie['genreName'];
                                             if (!isset($moviesByGenre[$genre])) {
                                                 $moviesByGenre[$genre] = [];
                                             }
-                                            $moviesByGenre[$genre][] = $movie;
+                                            if (!in_array($movie, $moviesByGenre[$genre])) {
+                                                $moviesByGenre[$genre][] = $movie;
+                                            }
                                         }
+                                       
+                                    } else {
+                                        echo "<div class='alert alert-warning'>No movies found in this list.</div>";
                                     }
-                                    ksort($moviesByGenre);
                                     ?>
 
                                     <?php foreach ($moviesByGenre as $genre => $movies): ?>
@@ -205,11 +213,18 @@ $lists = $conn->query("SELECT * FROM lists WHERE username = '$loggedInUser'");
 </body>
 
 <h2 class="text-center mt-4"> Search </h2>
-<div class="text-center my-3 genre-bar">
+<div class="text-center my-3 d-flex flex-wrap justify-content-center gap-2">
     <?php
-    $genres = ["Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance", "Thriller", "Crime", "Mystery", "Musical"];
-    foreach ($genres as $genre) {
-        echo "<a href='?genre=$genre' class='btn btn-danger'>$genre</a>";
+    $sqlGenres = "SELECT genreName FROM genres WHERE genreId != 20 ORDER BY genreName ASC";
+    $resultGenres = $conn->query($sqlGenres);
+
+    if ($resultGenres && $resultGenres->num_rows > 0) {
+        while ($row = $resultGenres->fetch_assoc()) {
+            $genre = htmlspecialchars($row['genreName']);
+            echo "<a href='?genre=$genre' class='btn btn-danger'>$genre</a> ";
+        }
+    } else {
+        echo "No genres found.";
     }
     ?>
 </div>
@@ -238,43 +253,45 @@ $lists = $conn->query("SELECT * FROM lists WHERE username = '$loggedInUser'");
                 <option value="5">5+</option>
             </select>
         </div>
+        <div class="col-md-1">
+            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i>
+                Search</button>
+        </div>
     </div>
-    <div class="text-center mt-3">
-        <button type="submit" class="btn btn-danger">Search</button>
-    </div>
+
 </form>
 
 <?php
-$sql = "SELECT * FROM movies WHERE 1=1";
+$sql = "SELECT m.* FROM movies m WHERE 1=1";
 
 if (!empty($_GET['movie'])) {
     $movie = $conn->real_escape_string($_GET['movie']);
-    $sql .= " AND title LIKE '%$movie%'";
+    $sql .= " AND m.title LIKE '%$movie%'";
 }
 
 if (!empty($_GET['genre'])) {
     $genre = $conn->real_escape_string($_GET['genre']);
-    $sql .= " AND genres LIKE '%$genre%'";
+    $sql .= " AND EXISTS (SELECT 1 FROM movies_genres mg JOIN genres g ON mg.genreId = g.genreId WHERE mg.movieId = m.movieId AND g.genreName LIKE '%$genre%')";
 }
 
 if (!empty($_GET['actor'])) {
     $actor = $conn->real_escape_string($_GET['actor']);
-    $sql .= " AND actors LIKE '%$actor%'";
+    $sql .= " AND EXISTS (SELECT 1 FROM actorsMovies am JOIN actors a ON am.actorId = a.actorId WHERE am.movieId = m.movieId AND a.actorName LIKE '%$actor%')";
 }
 
 if (!empty($_GET['year_from'])) {
     $yearFrom = intval($_GET['year_from']);
-    $sql .= " AND year >= $yearFrom";
+    $sql .= " AND m.year >= $yearFrom";
 }
 
 if (!empty($_GET['year_to'])) {
     $yearTo = intval($_GET['year_to']);
-    $sql .= " AND year <= $yearTo";
+    $sql .= " AND m.year <= $yearTo";
 }
 
 if (!empty($_GET['rating'])) {
     $rating = floatval($_GET['rating']);
-    $sql .= " AND imdbRating >= $rating";
+    $sql .= " AND m.imdbRating >= $rating";
 }
 
 $result = $conn->query($sql);
@@ -286,9 +303,23 @@ if ($result->num_rows > 0) {
         $year = htmlspecialchars($row['year']);
         $poster = !empty($row['posterUrl']) ? $row['posterUrl'] : "no-image.png";
         $rating = htmlspecialchars($row['imdbRating']);
-        $genre = htmlspecialchars($row['genres']);
-        $actors = htmlspecialchars($row['actors']);
         $movieId = $row['movieId'];
+
+        $genreQuery = "SELECT GROUP_CONCAT(g.genreName SEPARATOR ', ') AS genres 
+                       FROM movies_genres mg 
+                       JOIN genres g ON mg.genreId = g.genreId 
+                       WHERE mg.movieId = $movieId";
+        $genreResult = $conn->query($genreQuery);
+        $genreRow = $genreResult->fetch_assoc();
+        $genre = htmlspecialchars($genreRow['genres']);
+
+        $actorQuery = "SELECT GROUP_CONCAT(a.actorName SEPARATOR ', ') AS actors 
+                       FROM actorsMovies am 
+                       JOIN actors a ON am.actorId = a.actorId 
+                       WHERE am.movieId = $movieId";
+        $actorResult = $conn->query($actorQuery);
+        $actorRow = $actorResult->fetch_assoc();
+        $actors = htmlspecialchars($actorRow['actors']);
 
         echo "
                 <div class='col'>
@@ -298,7 +329,7 @@ if ($result->num_rows > 0) {
                         <div class='card-body text-center d-flex flex-column flex-grow-1'>
                             <h6 class='text-light'>$title</h6>
                             <p class='text-light'>⭐ $rating</p>
-                            <p class='text-light'>$genre</p>
+                            <p class='text-light'><strong>Genre:</strong> $genre</p>
                             <p class='text-light'><strong>Actors:</strong> $actors</p>
                             <div class = 'mt-auto'>
                             <div class='dropdown'>
