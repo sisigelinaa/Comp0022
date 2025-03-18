@@ -4,15 +4,12 @@ $username = "user";
 $password = "password";
 $database = "movielens";
 
-session_start();
-
 $mysqli = new mysqli($servername, $username, $password, $database);
 if ($mysqli->connect_error) {
     die("<div class='alert alert-danger'>Connection failed: " . $mysqli->connect_error . "</div>");
 }
 
 $openness = $agreeableness = $emotionalStability = $conscientiousness = $extraversion = 0;
-$correlations = [];
 $selectedGenres = "All Genres";
 
 function test_input($data) {
@@ -74,7 +71,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 // Correlation genre-personality
 $correlationQuery = "
-    SELECT g.genreName, 
+    SELECT g.genreId, g.genreName, 
            AVG(pd.openness) AS openness, 
            AVG(pd.agreeableness) AS agreeableness, 
            AVG(pd.emotionalStability) AS emotionalStability, 
@@ -84,7 +81,7 @@ $correlationQuery = "
     JOIN ratingsPersonality rp ON pd.userId = rp.userId
     JOIN movies_genres mg ON rp.movieId = mg.movieId
     JOIN genres g ON mg.genreId = g.genreId
-    GROUP BY g.genreName
+    GROUP BY g.genreId
     ORDER BY g.genreName ASC;
 ";
 
@@ -99,6 +96,7 @@ $correlations = $correlationResult->fetch_all(MYSQLI_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Personality & Viewing Preferences</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .genre-checkbox {
             display: inline-block;
@@ -120,46 +118,35 @@ $correlations = $correlationResult->fetch_all(MYSQLI_ASSOC);
             margin: 0 auto;
             text-align: left;
         }
+        .chart-container {
+            display: inline-block;
+            width: 24%;
+            margin: 0.5%;
+            height: 300px;
+        }
     </style>
-    <script>
-        function sortTable(tableId, columnIndex) {
-            let table = document.getElementById(tableId);
-            let rows = Array.from(table.rows).slice(1);
-            let ascending = table.getAttribute("data-sort-asc") === "true";
-
-            rows.sort((rowA, rowB) => {
-                let cellA = rowA.cells[columnIndex].innerText.trim();
-                let cellB = rowB.cells[columnIndex].innerText.trim();
-                let numA = parseFloat(cellA);
-                let numB = parseFloat(cellB);
-
-                return ascending ? numA - numB : numB - numA;
-            });
-
-            table.tBodies[0].append(...rows);
-            table.setAttribute("data-sort-asc", !ascending);
-        }
-        
-        function selectAllGenres() {
-            const checkboxes = document.querySelectorAll('input[name="genres[]"]');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = true;
-            });
-        }
-        
-        function deselectAllGenres() {
-            const checkboxes = document.querySelectorAll('input[name="genres[]"]');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = false;
-            });
-        }
-    </script>
 </head>
 <body class="bg-dark text-light">
     <div class="container mt-4">
         <a href="../Task 1 - Dashboard/dashboard.php" class="btn btn-light mb-3">&larr; Back to Dashboard</a>
         <h2 class="text-center">Personality Traits & Viewing Preferences</h2>
+        <h1 class="text-center">Personality Trait Scores Range from 1 - 7</h1>
+        <div style="height: 40px;"></div>
 
+        <h3 class="text-center mt-4">Average Personality Trait Scores for each Genre</h3>
+        
+        <!-- Pie Charts Container -->
+        <div class="row">
+            <?php foreach ($correlations as $row): ?>
+                <div class="chart-container">
+                    <canvas id="chart-<?= $row['genreId'] ?>"></canvas>
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+        <div style="height: 40px;"></div>
+
+        <h3 class="text-center mt-4">Average Personality Trait Scores for specific genre combination</h3>
         <form method="POST" class="text-center mt-4">
             <h4>Select Genres</h4>
             <div class="mb-3">
@@ -177,10 +164,12 @@ $correlations = $correlationResult->fetch_all(MYSQLI_ASSOC);
             </div>
             
             <button type="submit" class="btn btn-primary mt-3">Analyze</button>
+
+            <div style="height: 40px;"></div>
         </form>
 
         <?php if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["genres"])): ?>
-        <h3 class="text-center mt-4">Analysis Results for <span class="text-warning"><?= htmlspecialchars($selectedGenres) ?></span></h3>
+        <h3 class="text-center mt-4">Average Personality Trait Scores for Viewers who liked <span class="text-warning"><?= htmlspecialchars($selectedGenres) ?></span></h3>
         
         <table id="traitsTable" class="table table-dark table-bordered mt-3" data-sort-asc="true">
             <thead>
@@ -198,32 +187,75 @@ $correlations = $correlationResult->fetch_all(MYSQLI_ASSOC);
             </tbody>
         </table>
 
-        <h3 class="text-center mt-4">Genre & Personality Trait Correlations</h3>
-        <table id="correlationsTable" class="table table-dark table-bordered mt-3" data-sort-asc="true">
-            <thead>
-                <tr>
-                    <th onclick="sortTable('correlationsTable', 0)">Genre ⬍</th>
-                    <th onclick="sortTable('correlationsTable', 1)">Openness ⬍</th>
-                    <th onclick="sortTable('correlationsTable', 2)">Agreeableness ⬍</th>
-                    <th onclick="sortTable('correlationsTable', 3)">Emotional Stability ⬍</th>
-                    <th onclick="sortTable('correlationsTable', 4)">Conscientiousness ⬍</th>
-                    <th onclick="sortTable('correlationsTable', 5)">Extraversion ⬍</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($correlations as $row): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($row['genreName']) ?></td>
-                        <td><?= round($row['openness'], 2) ?></td>
-                        <td><?= round($row['agreeableness'], 2) ?></td>
-                        <td><?= round($row['emotionalStability'], 2) ?></td>
-                        <td><?= round($row['conscientiousness'], 2) ?></td>
-                        <td><?= round($row['extraversion'], 2) ?></td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+        <div style="height: 40px;"></div>
+
         <?php endif; ?>
     </div>
+
+    <script>
+        // Define consistent colors for each personality trait
+        const traitColors = {
+            openness: 'rgba(54, 162, 235, 0.8)',
+            agreeableness: 'rgba(75, 192, 192, 0.8)',
+            emotionalStability: 'rgba(255, 99, 132, 0.8)',
+            conscientiousness: 'rgba(255, 206, 86, 0.8)',
+            extraversion: 'rgba(153, 102, 255, 0.8)',
+        };
+
+        // Prepare data for charts
+        const correlations = <?= json_encode($correlations) ?>;
+
+        // Render pie charts
+        correlations.forEach(row => {
+            const genreId = row.genreId;
+            const ctx = document.getElementById(`chart-${genreId}`);
+
+            if (!ctx) {
+                console.error(`Canvas element not found for genreId: ${genreId}`);
+                return;
+            }
+
+            new Chart(ctx.getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['Openness', 'Agreeableness', 'Emotional Stability', 'Conscientiousness', 'Extraversion'],
+                    datasets: [{
+                        data: [
+                            row.openness,
+                            row.agreeableness,
+                            row.emotionalStability,
+                            row.conscientiousness,
+                            row.extraversion,
+                        ],
+                        backgroundColor: [
+                            traitColors.openness,
+                            traitColors.agreeableness,
+                            traitColors.emotionalStability,
+                            traitColors.conscientiousness,
+                            traitColors.extraversion,
+                        ],
+                        borderWidth: 1,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: row.genreName,
+                            color: '#fff',
+                            font: { size: 16 },
+                        },
+                        legend: {
+                            labels: {
+                                color: '#fff',
+                            },
+                        },
+                    },
+                },
+            });
+        });
+    </script>
 </body>
 </html>
