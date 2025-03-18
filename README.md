@@ -19,8 +19,8 @@ Ensure you have the following installed:
 ## Project Setup
 ### 1️⃣ Clone the Repository
 ```sh
- git clone https://github.com/yourusername/movie-recommendation.git
- cd movie-recommendation
+ git clone [https://github.com/yourusername/movie-recommendation.git](https://github.com/sisigelinaa/Comp0022)
+ cd Comp0022
 ```
 
 ### 2️⃣ Build and Start the Docker Containers
@@ -39,35 +39,12 @@ Once the containers are running, open your browser and go to:
  http://localhost:8080
 ```
 
-## Folder Structure
+### 4️⃣ Access the PHP Database Management System
+Once the containers are running, open your browser and go to:
+```sh
+ http://localhost:8081
 ```
-COMP0022/
-│── backend/                   # Backend services
-│   ├── predict_rating.py       # Flask API for rating predictions
-│   ├── Dockerfile.python       # Python backend Dockerfile
-│   ├── requirements.txt        # Python dependencies
-│
-│── csv/                        # Processed and normalized CSV files
-│
-│── db/
-│   ├── movies.sql              # SQL schema for MySQL database
-│
-│── php/                        # Frontend application
-│   ├── scripts/                # Contains PHP scripts
-│   ├── Task 1 - Dashboard/     # Movie search dashboard
-│   ├── Task 2 - Reports/       # Genre reports and histograms
-│   ├── Task 4 - Prediction/    # Rating prediction interface
-│   ├── Task 6 - Accounts/      # User authentication
-│   ├── index.php               # Main entry point
-│   ├── styles.css              # Styling
-│
-│── preprocessing/              # Data normalization scripts
-│
-│── src/scripts/                # Additional scripts
-│
-│── docker-compose.yml          # Docker configuration file
-│── README.md                   # Project documentation
-```
+Username: root, Password: root
 
 ## Database Setup
 - The **movies.sql** file initializes the MySQL database.
