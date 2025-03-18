@@ -44,7 +44,8 @@ Once the containers are running, open your browser and go to:
 ```sh
  http://localhost:8081
 ```
-Username: root, Password: root
+Username: root
+Password: root
 
 ## Database Setup
 - The **movies.sql** file initializes the MySQL database.
