@@ -127,67 +127,91 @@ if (isset($_GET['back'])) {
                     }
                     $genreLikeClause = implode(" OR ", $likeConditions);
 
-                    // Count how many times these users also disliked other movies in any of the same genres
-                    $sqlSameGenreDislikes = "
+                    // for each user, want sameGenreDislikes / sameGenresRated and otherGenreDislikes / otherGenresRated
+                    // check for each user which prop is bigger, add to relevant count
+                    $sameGenreDislikeCount = 0;
+                    $otherGenreDislikeCount = 0;
+                    foreach ($dislikedUsers as $userId) {
+
+                        // Count how many times this user disliked other movies in any of the same genres
+                        $sqlSameGenreDislikes = "
                         SELECT COUNT(*) AS sameGenreDislikes
                         FROM ratings r
                         JOIN movies_genres mg ON r.movieId = mg.movieId
                         JOIN genres g ON mg.genreId = g.genreId
-                        WHERE r.userId IN (" . implode(',', $dislikedUsers) . ")
+                        WHERE r.userId = '$userId'
                         AND (" . $genreLikeClause . ")
                         AND r.rating <= 2
                         AND r.movieId != '$movieId'
-                    ";
-                    $resultSameGenreDislikes = $conn->query($sqlSameGenreDislikes);
-                    $sameGenreDislikes = $resultSameGenreDislikes->fetch_assoc()['sameGenreDislikes'];
+                        ";
+                        $resultSameGenreDislikes = $conn->query($sqlSameGenreDislikes);
+                        $sameGenreDislikes = $resultSameGenreDislikes->fetch_assoc()['sameGenreDislikes'];
 
-                    // Count how many times these users disliked other movies in different genres
-                    $sqlOtherGenreDislikes = "
-                        SELECT COUNT(*) AS otherGenreDislikes
-                        FROM ratings r
-                        JOIN movies_genres mg ON r.movieId = mg.movieId
-                        JOIN genres g ON mg.genreId = g.genreId
-                        WHERE r.userId IN (" . implode(',', $dislikedUsers) . ")
-                        AND NOT (" . $genreLikeClause . ")
-                        AND r.rating <= 2
-                    ";
-                    $resultOtherGenreDislikes = $conn->query($sqlOtherGenreDislikes);
-                    $otherGenreDislikes = $resultOtherGenreDislikes->fetch_assoc()['otherGenreDislikes'];
+                        // Count how many times this user disliked other movies in different genres
+                        $sqlOtherGenreDislikes = "
+                            SELECT COUNT(*) AS otherGenreDislikes
+                            FROM ratings r
+                            JOIN movies_genres mg ON r.movieId = mg.movieId
+                            JOIN genres g ON mg.genreId = g.genreId
+                            WHERE r.userId = '$userId'
+                            AND NOT (" . $genreLikeClause . ")
+                            AND r.rating <= 2
+                        ";
+                        $resultOtherGenreDislikes = $conn->query($sqlOtherGenreDislikes);
+                        $otherGenreDislikes = $resultOtherGenreDislikes->fetch_assoc()['otherGenreDislikes'];
 
-                    // Get the proportion of dislikes for same and other genres
-                    // Same genre dislikes proportion - easy
-                    $sameGenres = count($genres);
-                    $sameGenreDislikesProp = $sameGenreDislikes / $sameGenres;
-                    // Other genre dislikes proportion - get average number of other genres rated
-                    // (eg may not have rated all from other genres so want fair proportion)
-                    // For each disliked user, count the number of other genres they have rated
-                    $userOtherGenres = [];
-                    foreach ($dislikedUsers as $userId) {
-                        $sqlUserGenres = "
+                        // Count how many same genres were rated badly by this user
+                        $sqlsameGenresRated = "
+                            SELECT COUNT(DISTINCT g.genreName) AS genreCount
+                            FROM ratings r
+                            JOIN movies_genres mg ON r.movieId = mg.movieId
+                            JOIN genres g ON mg.genreId = g.genreId
+                            WHERE r.userId = '$userId'
+                            AND (" . $genreLikeClause . ")
+                            AND r.rating <= 2
+                        ";
+                        $resultsameGenresRated = $conn->query($sqlsameGenresRated);
+                        $sameGenresRated = 0;
+                        if ($resultsameGenresRated->num_rows > 0) {
+                            $row = $resultsameGenresRated->fetch_assoc();
+                            $sameGenresRated = $row['genreCount'];
+                        }
+
+                        // Count how many other genres were rated badly by this user
+                        $sqlotherGenresRated = "
                             SELECT COUNT(DISTINCT g.genreName) AS genreCount
                             FROM ratings r
                             JOIN movies_genres mg ON r.movieId = mg.movieId
                             JOIN genres g ON mg.genreId = g.genreId
                             WHERE r.userId = '$userId'
                             AND NOT (" . $genreLikeClause . ")
+                            AND r.rating <= 2
                         ";
-                        $resultUserGenres = $conn->query($sqlUserGenres);
-                        if ($resultUserGenres->num_rows > 0) {
-                            $row = $resultUserGenres->fetch_assoc();
-                            $userOtherGenres[] = $row['genreCount'];
+                        $resultotherGenresRated = $conn->query($sqlotherGenresRated);
+                        $otherGenresRated = 0;
+                        if ($resultotherGenresRated->num_rows > 0) {
+                            $row = $resultotherGenresRated->fetch_assoc();
+                            $otherGenresRated = $row['genreCount'];
+                        }
+
+                        // Get the proportion of dislikes for same and other genres, add to relevant count
+                        if ($sameGenresRated > 0 && $otherGenresRated > 0) {
+                            $sameGenreDislikeProp = $sameGenreDislikes / $sameGenresRated;
+                            $otherGenreDislikeProp = $otherGenreDislikes / $otherGenresRated;
+                            // var_dump($sameGenreDislikeProp);
+                            // var_dump($otherGenreDislikeProp);
+                            if ($sameGenreDislikeProp > $otherGenreDislikeProp) {
+                                $sameGenreDislikeCount++;
+                            } else {
+                                $otherGenreDislikeCount++;
+                            }
                         }
                     }
-                    // And get the average number of other genres rated
-                    $avgOtherGenres = count($userOtherGenres) > 0 ? array_sum($userOtherGenres) / count($userOtherGenres) : 999999;
-                    $otherGenreDislikesProp = $otherGenreDislikes / $avgOtherGenres;
-
-                    var_dump($sameGenres);
-                    var_dump($avgOtherGenres);
-                    var_dump($sameGenreDislikesProp);
-                    var_dump($otherGenreDislikesProp);
+                    // var_dump($sameGenreDislikeCount);
+                    // var_dump($otherGenreDislikeCount);
 
                     // Hence find out if users disliked this movie because of its genre
-                    $isGenreSpecificDislike = ($sameGenreDislikesProp > $otherGenreDislikesProp);
+                    $isGenreSpecificDislike = ($sameGenreDislikeCount > $otherGenreDislikeCount);
                 } else {
                     $isGenreSpecificDislike = false; // No users disliked the movie
                 }
