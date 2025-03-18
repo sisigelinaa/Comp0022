@@ -1,6 +1,4 @@
 <?php
-// genreHistograms.php - Displays histograms for genre popularity or polarization.
-
 $servername = "db";
 $username = "user";
 $password = "password";
@@ -11,34 +9,34 @@ if ($conn->connect_error) {
     die("<div class='alert alert-danger'>Connection failed: " . $conn->connect_error . "</div>");
 }
 
-// Fetch movies with ratings and genres
-$sql = "SELECT genres, imdbRating FROM movies WHERE imdbRating IS NOT NULL AND genres <> ''";
+// Fetch genres and their corresponding IMDb ratings
+$sql = "
+    SELECT g.genreName, m.imdbRating 
+    FROM movies m
+    JOIN movies_genres mg ON m.movieId = mg.movieId
+    JOIN genres g ON mg.genreId = g.genreId
+    WHERE m.imdbRating IS NOT NULL AND g.genreName <> '(no genres listed)'
+";
 $result = $conn->query($sql);
 
 $genreData = [];
 while ($row = $result->fetch_assoc()) {
-    $genres = explode(',', $row['genres']);
+    $genre = $row['genreName'];
     $rating = floatval($row['imdbRating']);
-    foreach ($genres as $genre) {
-        $genre = trim($genre);
-        if ($genre === '')
-            continue;
-        if (!isset($genreData[$genre])) {
-            $genreData[$genre] = [];
-        }
-        $genreData[$genre][] = $rating;
+
+    if (!isset($genreData[$genre])) {
+        $genreData[$genre] = [];
     }
+    $genreData[$genre][] = $rating;
 }
 
+// Compute statistics for each genre
 $report = [];
 foreach ($genreData as $genre => $ratings) {
     $count = count($ratings);
     $avg = array_sum($ratings) / $count;
-    $sumSqDiff = 0;
-    foreach ($ratings as $r) {
-        $sumSqDiff += pow($r - $avg, 2);
-    }
-    $stddev = sqrt($sumSqDiff / $count);
+    $stddev = sqrt(array_sum(array_map(fn($r) => pow($r - $avg, 2), $ratings)) / $count);
+
     $report[] = [
         'genre' => $genre,
         'count' => $count,
@@ -49,11 +47,12 @@ foreach ($genreData as $genre => $ratings) {
 
 $conn->close();
 
+// Determine sorting type
 $type = $_GET['type'] ?? 'popularity';
 if ($type === 'popularity') {
-    usort($report, fn($a, $b) => $b['count'] <=> $a['count']);
-    $chartTitle = "Genre Popularity (Movie Count)";
-    $dataPoints = array_map(fn($item) => $item['count'], $report);
+    usort($report, fn($a, $b) => $b['average'] <=> $a['average']);
+    $chartTitle = "Genre Popularity (Average IMDb Rating)";
+    $dataPoints = array_map(fn($item) => $item['average'], $report);
 } else {
     usort($report, fn($a, $b) => $b['stddev'] <=> $a['stddev']);
     $chartTitle = "Genre Polarization (Rating Std. Dev.)";
@@ -63,7 +62,6 @@ $labels = array_map(fn($item) => $item['genre'], $report);
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -96,5 +94,4 @@ $labels = array_map(fn($item) => $item['genre'], $report);
         });
     </script>
 </body>
-
 </html>
