@@ -107,10 +107,10 @@ if (isset($_GET['back'])) {
                 
                 // Part of TASK 3: Get users who disliked this movie
                 $sqlDislikedUsers = "
-            SELECT userId 
-            FROM ratings 
-            WHERE movieId = '$movieId' AND rating <= 2
-        ";
+                    SELECT userId 
+                    FROM ratings 
+                    WHERE movieId = '$movieId' AND rating <= 2
+                ";
                 $resultDislikedUsers = $conn->query($sqlDislikedUsers);
 
                 if ($resultDislikedUsers->num_rows > 0) {
@@ -119,36 +119,75 @@ if (isset($_GET['back'])) {
                     while ($row = $resultDislikedUsers->fetch_assoc()) {
                         $dislikedUsers[] = $row['userId'];
                     }
+                    
+                    // LIKE conditions for genres WHERE clause - IN doesn't work well with strings
+                    $likeConditions = [];
+                    foreach ($genres as $genre) {
+                        $likeConditions[] = "g.genreName LIKE '%" . $genre . "%'";
+                    }
+                    $genreLikeClause = implode(" OR ", $likeConditions);
 
                     // Count how many times these users also disliked other movies in any of the same genres
                     $sqlSameGenreDislikes = "
-                SELECT COUNT(*) AS sameGenreDislikes
-                FROM ratings r
-                JOIN movies_genres mg ON r.movieId = mg.movieId
-                JOIN genres g ON mg.genreId = g.genreId
-                WHERE r.userId IN (" . implode(',', $dislikedUsers) . ")
-                AND g.genreName IN ('" . implode("','", $genres) . "')
-                AND r.rating <= 2
-                AND r.movieId != '$movieId'
-            ";
+                        SELECT COUNT(*) AS sameGenreDislikes
+                        FROM ratings r
+                        JOIN movies_genres mg ON r.movieId = mg.movieId
+                        JOIN genres g ON mg.genreId = g.genreId
+                        WHERE r.userId IN (" . implode(',', $dislikedUsers) . ")
+                        AND (" . $genreLikeClause . ")
+                        AND r.rating <= 2
+                        AND r.movieId != '$movieId'
+                    ";
                     $resultSameGenreDislikes = $conn->query($sqlSameGenreDislikes);
                     $sameGenreDislikes = $resultSameGenreDislikes->fetch_assoc()['sameGenreDislikes'];
 
                     // Count how many times these users disliked other movies in different genres
                     $sqlOtherGenreDislikes = "
-                SELECT COUNT(*) AS otherGenreDislikes
-                FROM ratings r
-                JOIN movies_genres mg ON r.movieId = mg.movieId
-                JOIN genres g ON mg.genreId = g.genreId
-                WHERE r.userId IN (" . implode(',', $dislikedUsers) . ")
-                AND g.genreName NOT IN ('" . implode("','", $genres) . "')
-                AND r.rating <= 2
-            ";
+                        SELECT COUNT(*) AS otherGenreDislikes
+                        FROM ratings r
+                        JOIN movies_genres mg ON r.movieId = mg.movieId
+                        JOIN genres g ON mg.genreId = g.genreId
+                        WHERE r.userId IN (" . implode(',', $dislikedUsers) . ")
+                        AND NOT (" . $genreLikeClause . ")
+                        AND r.rating <= 2
+                    ";
                     $resultOtherGenreDislikes = $conn->query($sqlOtherGenreDislikes);
                     $otherGenreDislikes = $resultOtherGenreDislikes->fetch_assoc()['otherGenreDislikes'];
 
-                    // Find out if users disliked this movie because of its genre using counts
-                    $isGenreSpecificDislike = ($sameGenreDislikes > $otherGenreDislikes);
+                    // Get the proportion of dislikes for same and other genres
+                    // Same genre dislikes proportion - easy
+                    $sameGenres = count($genres);
+                    $sameGenreDislikesProp = $sameGenreDislikes / $sameGenres;
+                    // Other genre dislikes proportion - get average number of other genres rated
+                    // (eg may not have rated all from other genres so want fair proportion)
+                    // For each disliked user, count the number of other genres they have rated
+                    $userOtherGenres = [];
+                    foreach ($dislikedUsers as $userId) {
+                        $sqlUserGenres = "
+                            SELECT COUNT(DISTINCT g.genreName) AS genreCount
+                            FROM ratings r
+                            JOIN movies_genres mg ON r.movieId = mg.movieId
+                            JOIN genres g ON mg.genreId = g.genreId
+                            WHERE r.userId = '$userId'
+                            AND NOT (" . $genreLikeClause . ")
+                        ";
+                        $resultUserGenres = $conn->query($sqlUserGenres);
+                        if ($resultUserGenres->num_rows > 0) {
+                            $row = $resultUserGenres->fetch_assoc();
+                            $userOtherGenres[] = $row['genreCount'];
+                        }
+                    }
+                    // And get the average number of other genres rated
+                    $avgOtherGenres = count($userOtherGenres) > 0 ? array_sum($userOtherGenres) / count($userOtherGenres) : 999999;
+                    $otherGenreDislikesProp = $otherGenreDislikes / $avgOtherGenres;
+
+                    var_dump($sameGenres);
+                    var_dump($avgOtherGenres);
+                    var_dump($sameGenreDislikesProp);
+                    var_dump($otherGenreDislikesProp);
+
+                    // Hence find out if users disliked this movie because of its genre
+                    $isGenreSpecificDislike = ($sameGenreDislikesProp > $otherGenreDislikesProp);
                 } else {
                     $isGenreSpecificDislike = false; // No users disliked the movie
                 }

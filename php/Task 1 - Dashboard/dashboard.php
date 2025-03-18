@@ -138,21 +138,31 @@ if ($conn->connect_error) {
                     $rating = htmlspecialchars($row['imdbRating']);
                     $movieId = $row['movieId'];
             
-                    $genreQuery = "SELECT GROUP_CONCAT(g.genreName SEPARATOR ', ') AS genres 
-                                   FROM movies_genres mg 
-                                   JOIN genres g ON mg.genreId = g.genreId 
-                                   WHERE mg.movieId = $movieId";
-                    $genreResult = $conn->query($genreQuery);
-                    $genreRow = $genreResult->fetch_assoc();
-                    $genre = htmlspecialchars($genreRow['genres']);
-            
-                    $actorQuery = "SELECT GROUP_CONCAT(a.actorName SEPARATOR ', ') AS actors 
-                                   FROM actorsMovies am 
-                                   JOIN actors a ON am.actorId = a.actorId 
-                                   WHERE am.movieId = $movieId";
-                    $actorResult = $conn->query($actorQuery);
-                    $actorRow = $actorResult->fetch_assoc();
-                    $actors = htmlspecialchars($actorRow['actors']);
+                    $sqlGenres = "
+                        SELECT g.genreName 
+                        FROM movies_genres mg
+                        JOIN genres g ON mg.genreId = g.genreId
+                        WHERE mg.movieId = '$movieId'
+                    ";
+                    $resultGenres = $conn->query($sqlGenres);
+                    $genres = [];
+                    while ($row = $resultGenres->fetch_assoc()) {
+                        $genres[] = trim($row['genreName']);
+                    }
+                    $genre = implode(', ', $genres);
+
+                    $sqlActors = "
+                        SELECT a.actorName 
+                        FROM actorsMovies am
+                        JOIN actors a ON am.actorId = a.actorId
+                        WHERE am.movieId = '$movieId'
+                    ";
+                    $resultActors = $conn->query($sqlActors);
+                    $actors = [];
+                    while ($row = $resultActors->fetch_assoc()) {
+                        $actors[] = trim($row['actorName']);
+                    }
+                    $actors = implode(', ', $actors);
             
                     echo "<div class='col'>
                             <a href='../movieData.php?movieId=$movieId' class='text-decoration-none'>
