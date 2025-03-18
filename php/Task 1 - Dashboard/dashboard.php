@@ -59,7 +59,7 @@ if ($conn->connect_error) {
                     Histogram</a>
                 <a href="../Task 4 - Prediction/predict_rating.php" class="btn btn-info btn-sm px-3"
                     style="background-color: #17a2b8; border-color: #17a2b8;">⭐ Predict Movie Rating</a>
-                <a href="../Task 5 - Personlaity/test.php" class="btn btn-primary btn-sm">Personality Traits</a>
+                <a href="../Task 5 - Personlaity/personalityAnalysis.php" class="btn btn-primary btn-sm">Personality Traits</a>
             </div>
 
             <form method="GET" class="my-4">
