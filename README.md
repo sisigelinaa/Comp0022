@@ -19,7 +19,7 @@ Ensure you have the following installed:
 ## Project Setup
 ### 1️⃣ Clone the Repository
 ```sh
- git clone [https://github.com/yourusername/movie-recommendation.git](https://github.com/sisigelinaa/Comp0022)
+ git clone https://github.com/sisigelinaa/Comp0022
  cd Comp0022
 ```
 
