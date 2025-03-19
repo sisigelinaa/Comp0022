@@ -152,11 +152,10 @@ foreach ($correlations as &$row) {
             text-align: left;
         }
         .chart-container {
-        display: inline-block;
-        width: 48%;
-        margin: 1%;
-        height: 400px;
-    }
+            width: 80%;
+            height: 60vh;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body class="bg-dark text-light">
@@ -165,15 +164,23 @@ foreach ($correlations as &$row) {
         <h2 class="text-center">Personality Traits & Viewing Preferences</h2>
         <div style="height: 40px;"></div>
 
-        <h3 class="text-center mt-4">Relative Change in Personality Trait Scores (from overall average) for each Genre</h3>
+        <h3 class="text-center mt-4">Relative Change in Personality Trait Scores by Genre</h3>
         
-        <!-- Pie Charts Container -->
-        <div class="row">
-            <?php foreach ($correlations as $row): ?>
-                <div class="chart-container">
-                    <canvas id="chart-<?= $row['genreId'] ?>"></canvas>
-                </div>
-            <?php endforeach; ?>
+        <!-- Genre Dropdown Selection -->
+        <div class="row mb-4">
+            <div class="col-md-4 mx-auto">
+                <select id="genreSelect" class="form-select bg-dark text-light">
+                    <option value="">Select a Genre...</option>
+                    <?php foreach ($allGenres as $genre): ?>
+                        <option value="<?= $genre['genreId'] ?>"><?= htmlspecialchars($genre['genreName']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Single Chart Container -->
+        <div class="chart-container mt-4">
+            <canvas id="personalityChart"></canvas>
         </div>
 
         <div style="height: 40px;"></div>
@@ -196,6 +203,7 @@ foreach ($correlations as &$row) {
             </div>
             
             <button type="submit" class="btn btn-primary mt-3">Analyze</button>
+            <div style="height: 40px;"></div>
         </form>
 
         <?php if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["genres"])): ?>
@@ -235,30 +243,19 @@ foreach ($correlations as &$row) {
 
         // Prepare data for charts
         const correlations = <?= json_encode($correlations) ?>;
+        let personalityChart;
 
-        // Render bar charts
-        correlations.forEach(row => {
-            const genreId = row.genreId;
-            const ctx = document.getElementById(`chart-${genreId}`);
-
-            if (!ctx) {
-                console.error(`Canvas element not found for genreId: ${genreId}`);
-                return;
-            }
-
-            new Chart(ctx.getContext('2d'), {
+        // Initialize the chart
+        function initChart() {
+            const ctx = document.getElementById('personalityChart').getContext('2d');
+            
+            personalityChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: ['Openness', 'Agreeableness', 'Emotional Stability', 'Conscientiousness', 'Extraversion'],
                     datasets: [{
                         label: 'Relative Change',
-                        data: [
-                            row.openness,
-                            row.agreeableness,
-                            row.emotionalStability,
-                            row.conscientiousness,
-                            row.extraversion,
-                        ],
+                        data: [0, 0, 0, 0, 0], // Default empty data
                         backgroundColor: [
                             traitColors.openness,
                             traitColors.agreeableness,
@@ -294,17 +291,84 @@ foreach ($correlations as &$row) {
                     plugins: {
                         title: {
                             display: true,
-                            text: row.genreName,
+                            text: 'Select a genre',
                             color: '#fff',
                             font: { size: 16 },
                         },
                         legend: {
-                            display: false, // Hide legend for bar charts
+                            display: false,
                         },
                     },
                 },
             });
+        }
+
+        // Update chart based on selected genre
+        function updateChart(genreId) {
+            const selectedGenre = correlations.find(item => item.genreId === genreId);
+            
+            if (!selectedGenre) {
+                console.error('Genre not found:', genreId);
+                return;
+            }
+            
+            personalityChart.data.datasets[0].data = [
+                selectedGenre.openness,
+                selectedGenre.agreeableness,
+                selectedGenre.emotionalStability,
+                selectedGenre.conscientiousness,
+                selectedGenre.extraversion,
+            ];
+            
+            personalityChart.options.plugins.title.text = selectedGenre.genreName;
+            personalityChart.update();
+        }
+
+        // Genre selector handler
+        document.getElementById('genreSelect').addEventListener('change', function() {
+            const genreId = this.value;
+            if (genreId) {
+                updateChart(genreId);
+            }
         });
+
+        // Select/deselect all genres functions
+        function selectAllGenres() {
+            const checkboxes = document.querySelectorAll('input[name="genres[]"]');
+            checkboxes.forEach(checkbox => checkbox.checked = true);
+        }
+
+        function deselectAllGenres() {
+            const checkboxes = document.querySelectorAll('input[name="genres[]"]');
+            checkboxes.forEach(checkbox => checkbox.checked = false);
+        }
+
+        // Table sorting function
+        function sortTable(tableId, colIndex) {
+            const table = document.getElementById(tableId);
+            const isAscending = table.getAttribute('data-sort-asc') === 'true';
+            const rows = Array.from(table.rows).slice(1); // Skip header row
+
+            rows.sort((a, b) => {
+                const cellA = a.cells[colIndex].textContent.trim();
+                const cellB = b.cells[colIndex].textContent.trim();
+                
+                if (colIndex === 0) { // Sort by text
+                    return isAscending ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
+                } else { // Sort by number
+                    return isAscending ? parseFloat(cellA) - parseFloat(cellB) : parseFloat(cellB) - parseFloat(cellA);
+                }
+            });
+
+            // Remove existing rows and add sorted rows
+            rows.forEach(row => table.tBodies[0].appendChild(row));
+            
+            // Toggle sort direction for next click
+            table.setAttribute('data-sort-asc', (!isAscending).toString());
+        }
+
+        // Initialize chart on page load
+        document.addEventListener('DOMContentLoaded', initChart);
     </script>
 </body>
 </html>
