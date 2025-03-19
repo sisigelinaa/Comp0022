@@ -87,9 +87,7 @@ $averageTraitQuery = "
         AVG(pd.conscientiousness) AS avg_conscientiousness, 
         AVG(pd.extraversion) AS avg_extraversion
     FROM personalityData pd
-    JOIN ratingsPersonality rp ON pd.userId = rp.userId
-    JOIN movies_genres mg ON rp.movieId = mg.movieId
-    JOIN genres g ON mg.genreId = g.genreId;
+    JOIN ratingsPersonality rp ON pd.userId = rp.userId;
 ";
 
 $averageTraitResult = $mysqli->query($averageTraitQuery);
