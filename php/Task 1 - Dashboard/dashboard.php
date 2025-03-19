@@ -59,8 +59,23 @@ if ($conn->connect_error) {
                     Histogram</a>
                 <a href="../Task 4 - Prediction/predict_rating.php" class="btn btn-info btn-sm px-3"
                     style="background-color: #17a2b8; border-color: #17a2b8;">⭐ Predict Movie Rating</a>
-                <a href="../Task 5 - Personlaity/personalityAnalysis.php" class="btn btn-primary btn-sm">Personality Traits</a>
+                    <a href="../Task 5 - Personlaity/personalityAnalysis.php" id="personalityTraitsButton" class="btn btn-primary btn-sm">Personality Traits</a>
             </div>
+
+            <script>    // Display Lodaing... when the Personality Traits button is clicked
+                // Add event listener to the Personality Traits button
+                document.getElementById('personalityTraitsButton').addEventListener('click', function(event) {
+                    event.preventDefault();
+
+                    // Loading... text
+                    this.innerHTML = 'Big Tables, Loading...';
+
+                    // Redirect to the personalityAnalysis.php page after a short delay
+                    setTimeout(function() {
+                        window.location.href = event.target.href;
+                    }, 10);
+                });
+            </script>
 
             <form method="GET" class="my-4">
                 <div class="row">
@@ -134,7 +149,7 @@ if ($conn->connect_error) {
                 while ($row = $result->fetch_assoc()) {
                     $title = htmlspecialchars($row['title']);
                     $year = htmlspecialchars($row['year']);
-                    $poster = !empty($row['posterUrl']) ? $row['posterUrl'] : "no-image.png";
+                    $poster = !empty($row['posterUrl']) ? $row['posterUrl'] : "../no-image.png";
                     $rating = htmlspecialchars($row['imdbRating']);
                     $movieId = $row['movieId'];
             

@@ -301,7 +301,7 @@ if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         $title = htmlspecialchars($row['title']);
         $year = htmlspecialchars($row['year']);
-        $poster = !empty($row['posterUrl']) ? $row['posterUrl'] : "no-image.png";
+        $poster = !empty($row['posterUrl']) ? $row['posterUrl'] : "../no-image.png";
         $rating = htmlspecialchars($row['imdbRating']);
         $movieId = $row['movieId'];
 

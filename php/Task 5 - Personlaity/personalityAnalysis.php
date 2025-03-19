@@ -196,6 +196,7 @@ foreach ($relativeScoreChanges as &$row) {
         <div style="height: 40px;"></div>
 
         <h3 class="text-center mt-4">Average Personality Trait Scores for specific genre combination</h3>
+        <h6 class="text-center">Relevant tables are very big, please be patient...</h6>
         <form method="POST" class="text-center mt-4">
             <h4>Select Genres</h4>
             <div class="mb-3">
@@ -212,13 +213,28 @@ foreach ($relativeScoreChanges as &$row) {
                 <?php endforeach; ?>
             </div>
             
-            <button type="submit" class="btn btn-primary mt-3">Analyze</button>
+            <button type="submit" id="analyzeButton" class="btn btn-primary mt-3">Analyze</button>
+            <script>    // Display Lodaing... when the Analyze button is clicked
+                // Add an event listener to the form
+                document.querySelector('form').addEventListener('submit', function(event) {
+                    const analyzeButton = document.getElementById('analyzeButton');
+
+                    // Change text to "Loading..." and disable it
+                    analyzeButton.innerHTML = 'Loading...';
+                    analyzeButton.disabled = true;
+
+                    setTimeout(function() {
+                        analyzeButton.innerHTML = 'Analyze';
+                        analyzeButton.disabled = false;
+                    }, 15000);
+                });
+            </script>
             <div style="height: 40px;"></div>
         </form>
 
         <?php if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["genres"])): ?>
         <h3 class="text-center mt-4">Average Personality Trait Scores for Viewers who liked <span class="text-warning"><?= htmlspecialchars($selectedGenres) ?></span></h3>
-        <h4 class="text-center">Personality Trait Scores Range from 1 - 7</h4>
+        <h5 class="text-center">Personality Trait Scores Range from 1 - 7</h5>
 
         <table id="traitsTable" class="table table-dark table-bordered mt-3" data-sort-asc="true">
             <thead>
