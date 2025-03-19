@@ -21,7 +21,7 @@
             die("<div class='alert alert-danger'>Connection failed: " . $conn->connect_error . "</div>");
         }
 
-        // Get user averages per genre using SQL
+        // Get user average ratings per genre
         $query = "SELECT r.userId, 
                     g.genreName AS genre,
                     AVG(r.rating) AS avg_rating
@@ -33,18 +33,17 @@
 
         $result = $conn->query($query);
 
-        // Process results into array
         $genreRatings = [];
         while ($row = $result->fetch_assoc()) {
-            $genre = trim($row['genre']);  // Trim whitespace from genre name
+            $genre = trim($row['genre']);  // trim whitespace (remove hidden characters)
             $genreRatings[$genre][$row['userId']] = (float) $row['avg_rating'];
         }
 
-        // Get unique genres and prepare results
         $genres = array_keys($genreRatings);
         $resultsHigh = [];
         $resultsLow = [];
 
+        // Constructing correlation data for both high and low genre ratings
         foreach ($genres as $genreA) {
 
             // Filter users with ratings >= 3.5 in genreA
@@ -62,6 +61,7 @@
                 if ($genreA === $genreB)
                     continue;
 
+                // From A users, get those which also rated genre B
                 $commonUsersHigh = array_intersect_key(
                     $usersAHigh,
                     $genreRatings[$genreB] ?? []
@@ -237,8 +237,8 @@
                         tooltip: {
                             callbacks: {
                                 label: (ctx) => {
-                                    const correlation = ctx.raw.y; // Access the correlation value
-                                    const users = ctx.raw.users; // Access the number of users
+                                    const correlation = ctx.raw.y;
+                                    const users = ctx.raw.users;
                                     return `Correlation: ${correlation.toFixed(2)} (${users} users)`;
                                 }
                             }

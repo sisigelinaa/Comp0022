@@ -20,6 +20,11 @@ function test_input($data) {
 $genreQuery = "SELECT genreId, genreName FROM genres ORDER BY genreName ASC";
 $genreResult = $mysqli->query($genreQuery);
 $allGenres = $genreResult->fetch_all(MYSQLI_ASSOC);
+// Mapping to get genre ID from genre name
+$genreNameToId = [];
+foreach ($allGenres as $genre) {
+    $genreNameToId[trim($genre['genreName'])] = $genre['genreId'];
+}
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Check if any genres were selected
@@ -28,14 +33,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $expandedTags = array_map('test_input', $_POST["genres"]);
         $selectedGenres = implode(', ', $expandedTags);
 
-        // LIKE conditions for genres WHERE clause - IN doesn't work well with strings
-        $likeConditions = [];
-        foreach ($expandedTags as $tag) {
-            $likeConditions[] = "TRIM(g.genreName) LIKE '%" . $tag . "%'";
+        // Convert genre names to genre IDs
+        $selectedGenreIds = [];
+        foreach ($_POST["genres"] as $genreName) {
+            if (isset($genreNameToId[trim($genreName)])) {
+                $selectedGenreIds[] = $genreNameToId[trim($genreName)];
+            }
         }
 
-        $whereClause = implode(" OR ", $likeConditions);
+        $whereClause = "g.genreId IN (" . implode(",", $selectedGenreIds) . ")";    // genreId searching with IN is faster than LIKE with genreName
 
+        // Get average personality trait scores for viewers who liked selected genres
         $query = "
             SELECT 
                 AVG(pd.openness) AS opennessAvg, 
@@ -69,6 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
+// Histogram data
 // Calculate average trait scores across all genres
 $averageTraitQuery = "
     SELECT 
@@ -93,8 +102,8 @@ $avgEmotionalStability = $averageTraits['avg_emotionalStability'];
 $avgConscientiousness = $averageTraits['avg_conscientiousness'];
 $avgExtraversion = $averageTraits['avg_extraversion'];
 
-// Correlation genre-personality
-$correlationQuery = "
+// Personality Score Averages for each genre
+$avgScoresQuery = "
     SELECT g.genreId, g.genreName, 
            AVG(pd.openness) AS openness, 
            AVG(pd.agreeableness) AS agreeableness, 
@@ -109,11 +118,11 @@ $correlationQuery = "
     ORDER BY g.genreName ASC;
 ";
 
-$correlationResult = $mysqli->query($correlationQuery);
-$correlations = $correlationResult->fetch_all(MYSQLI_ASSOC);
+$avgScoresResult = $mysqli->query($avgScoresQuery);
+$relativeScoreChanges = $avgScoresResult->fetch_all(MYSQLI_ASSOC);
 
 // Compute relative change for each genre
-foreach ($correlations as &$row) {
+foreach ($relativeScoreChanges as &$row) {
     $row['openness'] = ($row['openness'] - $avgOpenness) / $avgOpenness;
     $row['agreeableness'] = ($row['agreeableness'] - $avgAgreeableness) / $avgAgreeableness;
     $row['emotionalStability'] = ($row['emotionalStability'] - $avgEmotionalStability) / $avgEmotionalStability;
@@ -164,7 +173,8 @@ foreach ($correlations as &$row) {
         <h2 class="text-center">Personality Traits & Viewing Preferences</h2>
         <div style="height: 40px;"></div>
 
-        <h3 class="text-center mt-4">Relative Change in Personality Trait Scores by Genre</h3>
+        <h3 class="text-center mt-4">Relative Change in Personality Trait Scores</h3>
+        <h5 class="text-center mt-4">For selected genre. Relative changes are compared to relevant overall average across all genres</h5>
         
         <!-- Genre Dropdown Selection -->
         <div class="row mb-4">
@@ -178,7 +188,7 @@ foreach ($correlations as &$row) {
             </div>
         </div>
         
-        <!-- Single Chart Container -->
+        <!-- Chart Container -->
         <div class="chart-container mt-4">
             <canvas id="personalityChart"></canvas>
         </div>
@@ -242,7 +252,7 @@ foreach ($correlations as &$row) {
         };
 
         // Prepare data for charts
-        const correlations = <?= json_encode($correlations) ?>;
+        const relativeScoreChanges = <?= json_encode($relativeScoreChanges) ?>;
         let personalityChart;
 
         // Initialize the chart
@@ -305,7 +315,7 @@ foreach ($correlations as &$row) {
 
         // Update chart based on selected genre
         function updateChart(genreId) {
-            const selectedGenre = correlations.find(item => item.genreId === genreId);
+            const selectedGenre = relativeScoreChanges.find(item => item.genreId === genreId);
             
             if (!selectedGenre) {
                 console.error('Genre not found:', genreId);
