@@ -69,6 +69,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
+// Calculate average trait scores across all genres
+$averageTraitQuery = "
+    SELECT 
+        AVG(pd.openness) AS avg_openness, 
+        AVG(pd.agreeableness) AS avg_agreeableness, 
+        AVG(pd.emotionalStability) AS avg_emotionalStability, 
+        AVG(pd.conscientiousness) AS avg_conscientiousness, 
+        AVG(pd.extraversion) AS avg_extraversion
+    FROM personalityData pd
+    JOIN ratingsPersonality rp ON pd.userId = rp.userId
+    JOIN movies_genres mg ON rp.movieId = mg.movieId
+    JOIN genres g ON mg.genreId = g.genreId;
+";
+
+$averageTraitResult = $mysqli->query($averageTraitQuery);
+$averageTraits = $averageTraitResult->fetch_assoc();
+
+// Extract average trait scores
+$avgOpenness = $averageTraits['avg_openness'];
+$avgAgreeableness = $averageTraits['avg_agreeableness'];
+$avgEmotionalStability = $averageTraits['avg_emotionalStability'];
+$avgConscientiousness = $averageTraits['avg_conscientiousness'];
+$avgExtraversion = $averageTraits['avg_extraversion'];
+
 // Correlation genre-personality
 $correlationQuery = "
     SELECT g.genreId, g.genreName, 
@@ -87,6 +111,15 @@ $correlationQuery = "
 
 $correlationResult = $mysqli->query($correlationQuery);
 $correlations = $correlationResult->fetch_all(MYSQLI_ASSOC);
+
+// Compute relative change for each genre
+foreach ($correlations as &$row) {
+    $row['openness'] = ($row['openness'] - $avgOpenness) / $avgOpenness;
+    $row['agreeableness'] = ($row['agreeableness'] - $avgAgreeableness) / $avgAgreeableness;
+    $row['emotionalStability'] = ($row['emotionalStability'] - $avgEmotionalStability) / $avgEmotionalStability;
+    $row['conscientiousness'] = ($row['conscientiousness'] - $avgConscientiousness) / $avgConscientiousness;
+    $row['extraversion'] = ($row['extraversion'] - $avgExtraversion) / $avgExtraversion;
+}
 ?>
 
 <!DOCTYPE html>
@@ -119,21 +152,20 @@ $correlations = $correlationResult->fetch_all(MYSQLI_ASSOC);
             text-align: left;
         }
         .chart-container {
-            display: inline-block;
-            width: 24%;
-            margin: 0.5%;
-            height: 300px;
-        }
+        display: inline-block;
+        width: 48%;
+        margin: 1%;
+        height: 400px;
+    }
     </style>
 </head>
 <body class="bg-dark text-light">
     <div class="container mt-4">
         <a href="../Task 1 - Dashboard/dashboard.php" class="btn btn-light mb-3">&larr; Back to Dashboard</a>
         <h2 class="text-center">Personality Traits & Viewing Preferences</h2>
-        <h1 class="text-center">Personality Trait Scores Range from 1 - 7</h1>
         <div style="height: 40px;"></div>
 
-        <h3 class="text-center mt-4">Average Personality Trait Scores for each Genre</h3>
+        <h3 class="text-center mt-4">Relative Change in Personality Trait Scores (from overall average) for each Genre</h3>
         
         <!-- Pie Charts Container -->
         <div class="row">
@@ -164,13 +196,12 @@ $correlations = $correlationResult->fetch_all(MYSQLI_ASSOC);
             </div>
             
             <button type="submit" class="btn btn-primary mt-3">Analyze</button>
-
-            <div style="height: 40px;"></div>
         </form>
 
         <?php if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["genres"])): ?>
         <h3 class="text-center mt-4">Average Personality Trait Scores for Viewers who liked <span class="text-warning"><?= htmlspecialchars($selectedGenres) ?></span></h3>
-        
+        <h4 class="text-center">Personality Trait Scores Range from 1 - 7</h4>
+
         <table id="traitsTable" class="table table-dark table-bordered mt-3" data-sort-asc="true">
             <thead>
                 <tr>
@@ -205,7 +236,7 @@ $correlations = $correlationResult->fetch_all(MYSQLI_ASSOC);
         // Prepare data for charts
         const correlations = <?= json_encode($correlations) ?>;
 
-        // Render pie charts
+        // Render bar charts
         correlations.forEach(row => {
             const genreId = row.genreId;
             const ctx = document.getElementById(`chart-${genreId}`);
@@ -216,10 +247,11 @@ $correlations = $correlationResult->fetch_all(MYSQLI_ASSOC);
             }
 
             new Chart(ctx.getContext('2d'), {
-                type: 'pie',
+                type: 'bar',
                 data: {
                     labels: ['Openness', 'Agreeableness', 'Emotional Stability', 'Conscientiousness', 'Extraversion'],
                     datasets: [{
+                        label: 'Relative Change',
                         data: [
                             row.openness,
                             row.agreeableness,
@@ -240,6 +272,25 @@ $correlations = $correlationResult->fetch_all(MYSQLI_ASSOC);
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                            },
+                            ticks: {
+                                color: '#fff',
+                            },
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                            },
+                            ticks: {
+                                color: '#fff',
+                            },
+                        },
+                    },
                     plugins: {
                         title: {
                             display: true,
@@ -248,9 +299,7 @@ $correlations = $correlationResult->fetch_all(MYSQLI_ASSOC);
                             font: { size: 16 },
                         },
                         legend: {
-                            labels: {
-                                color: '#fff',
-                            },
+                            display: false, // Hide legend for bar charts
                         },
                     },
                 },
