@@ -183,7 +183,7 @@ $lists = $conn->query("SELECT * FROM lists WHERE username = '$loggedInUser'");
                                         <div class="row">
                                             <?php foreach ($movies as $movie): ?>
                                                 <div class="col-4 text-center">
-                                                    <a href="../movieData.php?id=<?= $movie['movieId'] ?>"
+                                                    <a href="../movieData.php?movieId=<?= $movie['movieId'] ?>"
                                                         class="text-decoration-none">
                                                         <img src="<?= $movie['posterUrl'] ?>"
                                                             alt="<?= htmlspecialchars($movie['title']) ?>"
